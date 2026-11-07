@@ -10,9 +10,9 @@ import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { EXAM, SECTIONS } from '../content/sections.mjs';
 import { STUDY_PLAN } from '../content/plan.mjs';
-import { PLAN_MR, SECTION_MR, SYLLABUS_MR, UI } from '../content/i18n.mjs';
+import { ABOUT_UI, UI } from '../content/i18n.mjs';
+import { ABOUT, EXAM, FOOT, HOME, HOME_EXTRA, MOCK, PAPERS, SECTIONS, SYLLABUS_MR } from '../content/exam.mjs';
 import { OBSERVED_TYPES, PAPER_SOURCES } from '../content/papers.mjs';
 import { TERMS } from '../content/terms.mjs';
 
@@ -23,7 +23,7 @@ const DRAFT = process.argv.includes('--draft');
 const REDIRECT = process.argv.includes('--redirect') ? (process.argv[process.argv.indexOf('--redirect') + 1] ?? '').replace(/\/+$/, '') : null;
 if (process.argv.includes('--redirect') && !/^https?:\/\//.test(REDIRECT)) { console.error('--redirect needs a URL'); process.exit(1); }
 const LENIENT = CHECK_ONLY || DRAFT; // incomplete plan / translations are warnings, not errors
-const REPO_URL = 'https://github.com/BaluRaut/mca-cet-prep';
+const REPO_URL = EXAM.repo;
 
 const errors = [];
 const warnings = [];
@@ -190,7 +190,7 @@ for (const id of seenIds.keys()) {
 for (const o of OBSERVED_TYPES) {
   if (o.topic && !seenIds.has(o.topic)) (LENIENT ? warnings : errors).push(`papers: unknown topic id "${o.topic}"`);
 }
-if (!VOCAB) (LENIENT ? warnings : errors).push('content/vocab.mjs is missing');
+if (!VOCAB) { if (EXAM.features.words) (LENIENT ? warnings : errors).push('content/vocab.mjs is missing'); }
 else {
   const seenWords = new Set();
   VOCAB.forEach((w, i) => {
@@ -205,7 +205,7 @@ else {
     for (const x of [...(w?.syn ?? []), ...(w?.ant ?? [])]) if (x === w?.word) errors.push(`${at}: a word cannot be its own synonym or antonym`);
   });
 }
-if (PLAN_MR.length !== STUDY_PLAN.length) errors.push('i18n PLAN_MR must have one entry per study-plan week');
+STUDY_PLAN.forEach((w, i) => { if (!w.focus?.en || !w.focus?.mr) errors.push(`plan week ${i + 1}: focus needs en and mr`); });
 
 for (const w of warnings) console.warn(`warn  ${w}`);
 for (const e of errors) console.error(`error ${e}`);
@@ -224,7 +224,7 @@ const topicById = (id) => sectionOf(id)?.topics.find((t) => t.id === id);
 const codeBlock = (code) => (code ? `<pre class="code" lang="en"><code>${esc(code.replace(/^\n+|\s+$/g, ''))}</code></pre>` : '');
 
 // Localised views of section metadata and topics. A topic without a translation renders in English.
-const sec = (s, lang) => (lang === 'mr' ? { ...s, ...SECTION_MR[s.id] } : s);
+const sec = (s, lang) => ({ ...s, name: s.name[lang], short: s.short[lang], blurb: s.blurb[lang], official: s.official[lang], analogy: s.analogy[lang] });
 function view(t, lang) {
   const tr = lang === 'mr' ? MR[t.id] : null;
   if (lang === 'mr') t = { ...t, syllabus: SYLLABUS_MR[t.syllabus] ?? t.syllabus };
@@ -248,9 +248,10 @@ function page({ lang, file, title, description, hue = 250, body, scripts = [] })
   const up = lang === 'en' ? '' : '../';
   const nav = [
     ['index.html', T.nav.home],
+    ['about.html', T.nav.about],
     ['plan.html', T.nav.plan],
     ...SECTIONS.map((s) => [`${s.id}.html`, sec(s, lang).short]),
-    ['words.html', T.nav.words],
+    ...(EXAM.features.words ? [['words.html', T.nav.words]] : []),
     ['revision.html', T.nav.revision],
     ['papers.html', T.nav.papers],
     ['mock.html', T.nav.mock],
@@ -275,7 +276,7 @@ function page({ lang, file, title, description, hue = 250, body, scripts = [] })
 <a class="skip" href="#main">${T.skip}</a>
 <header class="site">
   <div class="wrap bar">
-    <a class="brand" href="index.html"><span class="logo" aria-hidden="true">MC</span><span>${T.brand}</span></a>
+    <a class="brand" href="index.html"><span class="logo" aria-hidden="true">${EXAM.logo}</span><span>${EXAM.brand[lang]}</span></a>
     <span class="bar-actions">
       <a class="lang-switch" href="${other}" hreflang="${otherLang}" lang="${otherLang}" title="${T.otherLang.title}">${T.otherLang.label}</a>
       <button class="theme" type="button" aria-label="${T.themeLabel}" title="${T.themeLabel}">◐</button>
@@ -287,9 +288,9 @@ function page({ lang, file, title, description, hue = 250, body, scripts = [] })
 ${body}
 </main>
 <footer class="wrap site-foot">
-  <p>${T.footSource(EXAM.brochureUrl, EXAM.brochureYear, EXAM.officialSite)}</p>
-  <p>${T.footRepo(REPO_URL)}</p>
-  <p class="foot-terms">${T.footTerms}</p>
+  <p>${FOOT[lang].source}</p>
+  <p>${T.footRepo(REPO_URL, EXAM.issues)}</p>
+  <p class="foot-terms">${FOOT[lang].terms}</p>
 </footer>
 ${scripts.filter((s) => /-data\.js$|\/bank\.js$/.test(s)).map((s) => `<script src="${up}${s}"></script>`).join('\n')}
 <script src="${up}assets/app.js"></script>
@@ -400,8 +401,8 @@ ${topics.map((t, i) => renderTopic(t, section, i, lang)).join('\n')}`;
   return page({
     lang,
     file: `${section.id}.html`,
-    title: T.sectionTitle(section.name),
-    description: T.sectionDesc(section.name),
+    title: T.sectionTitle(section.name, EXAM.brand[lang]),
+    description: T.sectionDesc(section.name, EXAM.examName),
     hue: section.hue,
     body,
   });
@@ -409,133 +410,8 @@ ${topics.map((t, i) => renderTopic(t, section, i, lang)).join('\n')}`;
 
 // ---------- home ----------
 
-const TIME_PLAN = { maths: 35, reasoning: 30, english: 12, computer: 10 };
 
-const HOME = {
-  en: {
-    title: 'MCA CET Prep · MAH-MCA-CET with analogies',
-    description: 'Free MAH-MCA-CET preparation: every Maths, Reasoning, English and Computer topic explained with an everyday analogy, plus practice questions and a timed mock test.',
-    eyebrow: 'MAH-MCA-CET · Maharashtra MCA entrance',
-    h1: 'Every topic, explained with an everyday analogy',
-    lede: (n) => `Free preparation for the MCA Common Entrance Test. Each of the ${n} topics starts with a picture from daily life (a cricket ball, a local train, a kirana shop) so the concept sticks, then gives the formulas, a worked example, the traps, and practice questions. Finish with a full-length timed mock test. <a href="mr/index.html" lang="mr" hreflang="mr">हे संकेतस्थळ मराठीतही वाचा →</a>`,
-    stats: ['questions', 'marks', 'minutes', 'negative marking'],
-    sections: 'The four sections',
-    card: (q, m, min) => `${q} Q · ${m} marks · ~${min} min`,
-    cardDone: (n) => `<span class="done-count">0</span> / ${n} topics done`,
-    glance: 'Exam at a glance',
-    facts: [
-      ['Pattern', `${EXAM.questions} multiple-choice questions (4 options), ${EXAM.marksPerQuestion} marks each, ${EXAM.marks} marks total.`],
-      ['Time', `${EXAM.minutes} minutes for the whole paper. There is no separate timer per section; you can attempt any question at any time.`],
-      ['Negative marking', 'none. An unanswered question scores zero.'],
-      ['Mode and medium', `${EXAM.mode}, in ${EXAM.medium} only.`],
-      ['Eligibility', EXAM.eligibility],
-    ],
-    source: `Source: official ${EXAM.brochureYear} brochure. The ${EXAM.brochureYear + 1} brochure may change details; check <a href="${EXAM.officialSite}">cetcell.mahacet.org</a>.`,
-    strategy: 'Exam-day strategy',
-    strategyTag: 'Think of it like…',
-    strategyAnalogy: 'A farmer picking cotton before the rain. Pick the full, easy bolls on every plant first, then come back for the hard ones. Never stand at one stubborn plant while the whole field waits.',
-    strategySteps: [
-      ['Two passes.', 'First pass: answer everything you can do in under a minute; mark the rest. Second pass: return to marked questions.'],
-      ['Leave nothing blank.', 'With no negative marking, a blank is a guaranteed zero. The brochure advises against <i>random</i> guessing, so eliminate the options you know are wrong first, then choose.'],
-      ['Bank time on English and Computer.', 'They are mostly recall: aim for ~12 and ~10 minutes, leaving ~35 for Maths and ~30 for Reasoning.'],
-      ['Paper for reasoning.', 'Draw the family tree, the direction arrows, the seating circle. Solving in your head is where reasoning marks are lost.'],
-    ],
-    plan: '8-week study plan',
-    planNote: 'Each week mixes all four sections so nothing goes cold. Topics you tick as done show a check here too.',
-    week: (i) => `Week ${i}`,
-    cta: 'Ready to test yourself?',
-    ctaText: `The mock test draws ${EXAM.questions} questions in the real 30/30/20/20 split, runs a ${EXAM.minutes}-minute timer, and shows a section-wise score with explanations.`,
-    ctaMock: 'Start a mock test',
-    ctaRevision: 'Quick revision sheet',
-  },
-  mr: {
-    title: 'MCA CET तयारी · प्रत्येक विषय उपमेसह, मराठीत',
-    description: 'MAH-MCA-CET ची मोफत तयारी मराठीत: गणित, तर्कशक्ती, इंग्रजी आणि संगणकाचा प्रत्येक विषय रोजच्या जीवनातील उपमेने समजावलेला, सराव प्रश्न आणि वेळेसह सराव परीक्षा.',
-    eyebrow: 'MAH-MCA-CET · महाराष्ट्र MCA प्रवेश परीक्षा',
-    h1: 'प्रत्येक विषय, रोजच्या जीवनातील उपमेने',
-    lede: (n) => `MCA सामाईक प्रवेश परीक्षेची मोफत तयारी, मराठीत. सर्व ${n} विषयांची सुरुवात रोजच्या जीवनातील एका चित्राने होते (क्रिकेटचा चेंडू, लोकल ट्रेन, किराणा दुकान), त्यामुळे संकल्पना पक्की बसते. नंतर सूत्रे, सोडवलेले उदाहरण, नेहमीच्या चुका आणि सराव प्रश्न. शेवटी पूर्ण वेळेची सराव परीक्षा. <b>परीक्षा फक्त इंग्रजीत असते</b>, म्हणून प्रश्न इंग्रजीतच ठेवले आहेत आणि प्रत्येक प्रश्नाखाली त्याचा मराठी अर्थ दिला आहे.`,
-    stats: ['प्रश्न', 'गुण', 'मिनिटे', 'निगेटिव्ह मार्किंग'],
-    sections: 'चार विभाग',
-    card: (q, m, min) => `${q} प्रश्न · ${m} गुण · ~${min} मिनिटे`,
-    cardDone: (n) => `<span class="done-count">0</span> / ${n} विषय पूर्ण`,
-    glance: 'परीक्षा एका नजरेत',
-    facts: [
-      ['स्वरूप', `${EXAM.questions} बहुपर्यायी प्रश्न (4 पर्याय), प्रत्येकी ${EXAM.marksPerQuestion} गुण, एकूण ${EXAM.marks} गुण.`],
-      ['वेळ', `संपूर्ण पेपरसाठी ${EXAM.minutes} मिनिटे. प्रत्येक विभागासाठी वेगळा टायमर नाही; कोणताही प्रश्न केव्हाही सोडवता येतो.`],
-      ['निगेटिव्ह मार्किंग', 'नाही. न सोडवलेल्या प्रश्नाला शून्य गुण.'],
-      ['पद्धत व माध्यम', 'ऑनलाइन (संगणकावर), केवळ इंग्रजी माध्यम.'],
-      ['पात्रता', 'कोणतीही पदवी (B.E./B.Tech/B.Sc/B.Com/B.Voc/BCA इ.), शक्यतो 12वी किंवा पदवी स्तरावर गणितासह, किमान 50% गुण (महाराष्ट्रातील राखीव प्रवर्ग, EWS व दिव्यांग उमेदवारांसाठी 45%). अंतिम वर्षातील विद्यार्थीही परीक्षा देऊ शकतात.'],
-    ],
-    source: `स्रोत: अधिकृत ${EXAM.brochureYear} माहितीपुस्तिका. ${EXAM.brochureYear + 1} च्या माहितीपुस्तिकेत बदल असू शकतात; <a href="${EXAM.officialSite}">cetcell.mahacet.org</a> वर तपासा.`,
-    strategy: 'परीक्षेच्या दिवशीची रणनीती',
-    strategyTag: 'असं समजा…',
-    strategyAnalogy: 'पाऊस येण्याआधी कापूस वेचणारा शेतकरी. आधी प्रत्येक झाडावरची पूर्ण उमललेली, सहज हाती येणारी बोंडं वेचायची, आणि अवघड बोंडांसाठी नंतर परत यायचं. एका हट्टी झाडापाशी उभं राहून संपूर्ण शेत थांबवायचं नाही.',
-    strategySteps: [
-      ['दोन फेऱ्या.', 'पहिली फेरी: एका मिनिटात सुटणारे सगळे प्रश्न सोडवा, बाकीच्यांवर खूण करा. दुसरी फेरी: खूण केलेल्या प्रश्नांकडे परत या.'],
-      ['एकही प्रश्न सोडू नका.', 'निगेटिव्ह मार्किंग नसल्यामुळे रिकामा प्रश्न म्हणजे खात्रीचा शून्य. माहितीपुस्तिका <i>अंदाधुंद</i> अंदाज न लावण्याचा सल्ला देते, म्हणून आधी नक्की चुकीचे पर्याय बाद करा, मग निवडा.'],
-      ['इंग्रजी व संगणकात वेळ वाचवा.', 'हे विभाग मुख्यतः पाठांतरावर आधारित आहेत: सुमारे 12 व 10 मिनिटे ठेवा, म्हणजे गणितासाठी ~35 आणि तर्कशक्तीसाठी ~30 मिनिटे उरतात.'],
-      ['तर्कशक्तीसाठी कागद वापरा.', 'वंशवृक्ष, दिशांचे बाण, बैठकीचे वर्तुळ काढा. डोक्यातच सोडवल्यामुळे तर्कशक्तीचे गुण जातात.'],
-    ],
-    plan: '8 आठवड्यांचा अभ्यास आराखडा',
-    planNote: 'प्रत्येक आठवड्यात चारही विभाग मिसळले आहेत, म्हणजे कोणताही विषय विसरला जात नाही. तुम्ही पूर्ण म्हणून खूण केलेले विषय इथेही ✓ सह दिसतात.',
-    week: (i) => `आठवडा ${i}`,
-    cta: 'स्वतःची परीक्षा घ्यायला तयार?',
-    ctaText: `सराव परीक्षेत खऱ्या परीक्षेप्रमाणे 30/30/20/20 विभागणीत ${EXAM.questions} प्रश्न येतात, ${EXAM.minutes} मिनिटांचा टायमर चालतो, आणि शेवटी विभागवार गुण व स्पष्टीकरणे दिसतात.`,
-    ctaMock: 'सराव परीक्षा सुरू करा',
-    ctaRevision: 'झटपट उजळणी पत्रक',
-  },
-};
 
-const HOME_EXTRA = {
-  en: {
-    startHere: 'Start here',
-    diag: 'Take the 20-question diagnostic',
-    diagHint: '18 minutes. It tells you which section to study first.',
-    you: 'Your progress',
-    youDone: (n) => `of ${n} topics done`,
-    youMock: 'last test score',
-    youWrong: 'questions to retry',
-    youDiag: 'Diagnostic',
-    retake: 'retake',
-    retry: 'Retry my mistakes',
-    dailyLink: 'Day-by-day plan →',
-    todayLabel: 'Today',
-    examDay: 'Exam-day checklist',
-    examDayNote: 'From the official brochure. Read it the night before.',
-    checklist: [
-      'Hall ticket, printed, with a recent photo affixed. Download it from the candidate login; the exam date, reporting time and centre are on it.',
-      'One original photo ID with the same name as on the hall ticket: PAN card, passport, permanent driving licence, voter card, Aadhaar or e-Aadhaar with photo, bank passbook with photo, or a valid college ID. A ration card or learner’s licence is not accepted.',
-      'Reach the centre before the reporting time on the hall ticket. Late candidates are not allowed in. Plan to be at the venue about 140 minutes in all, for verification, login and instructions.',
-      'No mobile phone, smart watch, headphones or any electronic device in the hall. Being found with one means disqualification. Leave them at home or with someone outside.',
-      'The test is on a computer: the option you click is your answer, and you can change it before submitting. There is no negative marking, so answer every question.',
-      'Sleep well the night before and eat before you leave. Read the revision sheet once; do not start a new topic on exam day.',
-    ],
-  },
-  mr: {
-    startHere: 'इथून सुरू करा',
-    diag: '20 प्रश्नांची प्रारंभिक चाचणी द्या',
-    diagHint: '18 मिनिटे. कोणता विभाग आधी अभ्यासायचा ते सांगते.',
-    you: 'तुमची प्रगती',
-    youDone: (n) => `${n} विषयांपैकी पूर्ण`,
-    youMock: 'शेवटच्या परीक्षेचे गुण',
-    youWrong: 'पुन्हा सोडवायचे प्रश्न',
-    youDiag: 'प्रारंभिक चाचणी',
-    retake: 'पुन्हा द्या',
-    retry: 'माझ्या चुका पुन्हा सोडवा',
-    dailyLink: 'दिवसागणिक आराखडा →',
-    todayLabel: 'आज',
-    examDay: 'परीक्षेच्या दिवसाची यादी',
-    examDayNote: 'अधिकृत माहितीपुस्तिकेतून. आदल्या रात्री वाचा.',
-    checklist: [
-      'हॉल तिकीट, प्रिंट केलेले, अलीकडचा फोटो चिकटवलेले. उमेदवार लॉगिनमधून डाउनलोड करा; परीक्षेची तारीख, हजर राहण्याची वेळ आणि केंद्र त्यावर असते.',
-      'हॉल तिकिटावरील नावाशी जुळणारे एक मूळ फोटो ओळखपत्र: PAN कार्ड, पासपोर्ट, कायमस्वरूपी ड्रायव्हिंग लायसन्स, मतदार ओळखपत्र, फोटोसह आधार किंवा ई-आधार, फोटोसह बँक पासबुक, किंवा वैध कॉलेज ओळखपत्र. रेशन कार्ड किंवा लर्निंग लायसन्स चालत नाही.',
-      'हॉल तिकिटावरील हजर राहण्याच्या वेळेआधी केंद्रावर पोहोचा. उशिरा आलेल्यांना प्रवेश मिळत नाही. पडताळणी, लॉगिन आणि सूचनांसाठी एकूण सुमारे 140 मिनिटे केंद्रावर लागतील असे गृहीत धरा.',
-      'परीक्षा हॉलमध्ये मोबाइल, स्मार्ट वॉच, हेडफोन किंवा कोणतेही इलेक्ट्रॉनिक उपकरण नेऊ नका. जवळ सापडले तर अपात्र ठरवले जाते. ती घरी किंवा बाहेर कोणाकडे ठेवा.',
-      'परीक्षा संगणकावर होते: तुम्ही क्लिक केलेला पर्याय हेच तुमचे उत्तर, आणि सबमिट करण्याआधी ते बदलता येते. निगेटिव्ह मार्किंग नाही, म्हणून प्रत्येक प्रश्न सोडवा.',
-      'आदल्या रात्री पुरेशी झोप घ्या आणि निघण्याआधी जेवा. उजळणी पत्रक एकदा वाचा; परीक्षेच्या दिवशी नवीन विषय सुरू करू नका.',
-    ],
-  },
-};
 
 function renderHome(lang) {
   const H = HOME[lang];
@@ -548,7 +424,7 @@ function renderHome(lang) {
   const cards = SECTIONS.map((raw) => {
     const s = sec(raw, lang);
     return `<a class="card" href="${s.id}.html" style="--hue:${s.hue}">
-    <span class="card-tag">${H.card(s.questions, s.questions * EXAM.marksPerQuestion, TIME_PLAN[s.id])}</span>
+    <span class="card-tag">${H.card(s.questions, s.questions * EXAM.marksPerQuestion, s.minutes)}</span>
     <h3>${s.name}</h3>
     <p>${s.blurb}</p>
     <div class="progress" data-progress="${s.topics.map((t) => t.id).join(' ')}">
@@ -559,8 +435,8 @@ function renderHome(lang) {
   }).join('');
 
   const plan = STUDY_PLAN.map((w, i) => {
-    const focus = lang === 'mr' ? PLAN_MR[i].focus : w.focus;
-    const note = lang === 'mr' ? PLAN_MR[i].note : w.note;
+    const focus = w.focus[lang];
+    const note = w.note?.[lang];
     const chips = (w.topics ?? []).filter(topicById).map((id) => {
       const s = sectionOf(id);
       return `<a class="chip" style="--hue:${s.hue}" href="${s.id}.html#${id}" data-chip="${id}">${view(topicById(id), lang).title}</a>`;
@@ -637,16 +513,16 @@ const REVISION = {
     h1: 'Revision sheet',
     lede: 'One line of analogy and the key formulas for every topic. Read it the night before; if a line doesn\'t trigger the full idea, open that topic again.',
     print: 'Print this sheet',
-    title: 'Revision sheet · MCA CET Prep',
-    description: 'One-page MAH-MCA-CET revision: the analogy and key formulas for every topic.',
+    title: `Revision sheet · ${EXAM.brand.en}`,
+    description: `One-page ${EXAM.examName} revision: the analogy and key formulas for every topic.`,
   },
   mr: {
     eyebrow: 'शेवटच्या आठवड्याची उजळणी',
     h1: 'उजळणी पत्रक',
     lede: 'प्रत्येक विषयाची एका ओळीतील उपमा आणि महत्त्वाची सूत्रे. परीक्षेच्या आदल्या रात्री वाचा; एखादी ओळ वाचून पूर्ण संकल्पना आठवत नसेल, तर तो विषय पुन्हा उघडा.',
     print: 'हे पत्रक प्रिंट करा',
-    title: 'उजळणी पत्रक · MCA CET तयारी',
-    description: 'MAH-MCA-CET ची एका पानावर उजळणी: प्रत्येक विषयाची उपमा आणि महत्त्वाची सूत्रे, मराठीत.',
+    title: `उजळणी पत्रक · ${EXAM.brand.mr}`,
+    description: `${EXAM.examName} ची एका पानावर उजळणी: प्रत्येक विषयाची उपमा आणि महत्त्वाची सूत्रे, मराठीत.`,
   },
 };
 
@@ -724,24 +600,6 @@ function renderSpeedMaths(lang) {
 </section>`;
 }
 
-const MOCK = {
-  en: {
-    eyebrow: 'Practice under exam conditions',
-    h1: 'Mock test',
-    lede: (n) => `Questions are drawn at random from the ${n}-question bank and options are shuffled, so every attempt is different.`,
-    title: 'Mock test · MCA CET Prep',
-    description: 'Timed MAH-MCA-CET mock test: 100 questions, 90 minutes, section-wise score and explanations.',
-    noscript: 'The mock test needs JavaScript.',
-  },
-  mr: {
-    eyebrow: 'परीक्षेसारख्या वातावरणात सराव',
-    h1: 'सराव परीक्षा',
-    lede: (n) => `${n} प्रश्नांच्या संग्रहातून प्रश्न यादृच्छिक पद्धतीने निवडले जातात आणि पर्यायांचा क्रमही बदलतो, त्यामुळे प्रत्येक वेळी नवी परीक्षा. प्रश्न खऱ्या परीक्षेप्रमाणे इंग्रजीत; हवे तेव्हा मराठी अर्थ पाहता येतो.`,
-    title: 'सराव परीक्षा · MCA CET तयारी',
-    description: 'वेळेसह MAH-MCA-CET सराव परीक्षा: 100 प्रश्न, 90 मिनिटे, विभागवार गुण आणि मराठी स्पष्टीकरणे.',
-    noscript: 'सराव परीक्षेसाठी JavaScript आवश्यक आहे.',
-  },
-};
 
 function renderMock(lang) {
   const M = MOCK[lang];
@@ -754,56 +612,6 @@ function renderMock(lang) {
   return page({ lang, file: 'mock.html', title: M.title, description: M.description, body, scripts: ['assets/bank.js', 'assets/mock.js'] });
 }
 
-const PAPERS = {
-  en: {
-    title: 'Previous papers · MCA CET Prep',
-    description: 'Where to find MAH-MCA-CET previous year question papers, what each source really contains, and how to practise with them.',
-    eyebrow: 'Reference',
-    h1: 'Previous year papers',
-    lede: 'Honest answer first: State CET Cell does not publish MCA CET question papers on its website. What exists is your own paper in the candidate login, and papers that other sites have collected. Here is what each source actually contains, what kinds of questions past papers show, and how to use one with this site.',
-    sources: 'Where to find them',
-    head: ['Source', 'Years', 'Type', 'Access'],
-    kinds: { official: 'Official', memory: 'Memory-based (unofficial)', unverified: 'Unofficial copy, not verified' },
-    open: 'Open',
-    caution: 'Unofficial papers can contain wrong answers or incomplete questions. If an answer key disagrees with your working, trust your working and check the topic here.',
-    types: 'What past papers actually ask',
-    typesNote: 'Question types seen in the 2023 memory-based paper, with the topic on this site that teaches each one.',
-    typesHead: ['Question type', 'Learn it here'],
-    gap: 'Not in the official syllabus, but asked',
-    howto: 'How to practise with a past paper',
-    steps: [
-      ['Set exam conditions.', 'Print it or open it full-screen, put your phone away, and set a timer: 90 minutes for 100 questions, or about 54 seconds per question if the paper is shorter.'],
-      ['Answer in one sitting.', 'No checking answers midway. Leave nothing blank: there is no negative marking.'],
-      ['Mark, then sort your mistakes.', 'For every wrong or skipped question, write down which topic it belongs to.'],
-      ['Fix the topic, not the question.', 'Open that topic here, read the analogy again, and redo its practice set until all four are right.'],
-      ['Repeat with a fresh paper.', 'Alternate past papers with the <a href="mock.html">mock test</a> here, which draws a new paper every time.'],
-    ],
-  },
-  mr: {
-    title: 'मागील प्रश्नपत्रिका · MCA CET तयारी',
-    description: 'MAH-MCA-CET च्या मागील वर्षांच्या प्रश्नपत्रिका कुठे मिळतात, प्रत्येक स्रोतात नेमके काय आहे, आणि त्यांचा सराव कसा करायचा.',
-    eyebrow: 'संदर्भ',
-    h1: 'मागील वर्षांच्या प्रश्नपत्रिका',
-    lede: 'आधी खरे उत्तर: राज्य CET कक्ष MCA CET च्या प्रश्नपत्रिका स्वतःच्या संकेतस्थळावर प्रसिद्ध करत नाही. उपलब्ध आहे ते म्हणजे उमेदवार लॉगिनमधील तुमची स्वतःची प्रश्नपत्रिका, आणि इतर संकेतस्थळांनी गोळा केलेल्या प्रश्नपत्रिका. प्रत्येक स्रोतात नेमके काय आहे, मागील प्रश्नपत्रिकांमध्ये कोणत्या प्रकारचे प्रश्न येतात, आणि त्यांचा या संकेतस्थळासोबत कसा वापर करायचा, ते इथे दिले आहे.',
-    sources: 'कुठे मिळतील',
-    head: ['स्रोत', 'वर्षे', 'प्रकार', 'उपलब्धता'],
-    kinds: { official: 'अधिकृत', memory: 'आठवणीवर आधारित (अनधिकृत)', unverified: 'अनधिकृत प्रत, खात्री केलेली नाही' },
-    open: 'उघडा',
-    caution: 'अनधिकृत प्रश्नपत्रिकांमध्ये चुकीची उत्तरे किंवा अपूर्ण प्रश्न असू शकतात. उत्तरसूची तुमच्या उकलीशी जुळत नसेल, तर तुमच्या उकलीवर विश्वास ठेवा आणि इथे तो विषय तपासा.',
-    types: 'मागील प्रश्नपत्रिकांमध्ये प्रत्यक्ष काय विचारले जाते',
-    typesNote: '2023 च्या आठवणीवर आधारित प्रश्नपत्रिकेत दिसलेले प्रश्नांचे प्रकार, आणि ते शिकवणारा या संकेतस्थळावरील विषय.',
-    typesHead: ['प्रश्नाचा प्रकार', 'इथे शिका'],
-    gap: 'अधिकृत अभ्यासक्रमात नाही, पण विचारले जाते',
-    howto: 'मागील प्रश्नपत्रिकेने सराव कसा करायचा',
-    steps: [
-      ['परीक्षेसारखे वातावरण तयार करा.', 'प्रिंट काढा किंवा पूर्ण स्क्रीनवर उघडा, फोन बाजूला ठेवा आणि टायमर लावा: 100 प्रश्नांसाठी 90 मिनिटे, किंवा प्रश्नपत्रिका लहान असेल तर प्रत्येक प्रश्नाला सुमारे 54 सेकंद.'],
-      ['एका बैठकीत सोडवा.', 'मध्येच उत्तरे तपासू नका. एकही प्रश्न रिकामा सोडू नका: निगेटिव्ह मार्किंग नाही.'],
-      ['गुण काढा, मग चुकांची वर्गवारी करा.', 'प्रत्येक चुकलेल्या किंवा सोडलेल्या प्रश्नासाठी तो कोणत्या विषयाचा आहे ते लिहा.'],
-      ['प्रश्न नव्हे, विषय पक्का करा.', 'तो विषय इथे उघडा, उपमा पुन्हा वाचा, आणि चारही प्रश्न बरोबर येईपर्यंत त्याचा सराव पुन्हा सोडवा.'],
-      ['नवीन प्रश्नपत्रिकेने पुन्हा करा.', 'मागील प्रश्नपत्रिका आणि इथली <a href="mock.html">सराव परीक्षा</a> आलटून-पालटून द्या; सराव परीक्षा दर वेळी नवीन प्रश्नपत्रिका तयार करते.'],
-    ],
-  },
-};
 
 function renderPapers(lang) {
   const P = PAPERS[lang];
@@ -831,14 +639,14 @@ function renderPapers(lang) {
   </table></div>
   <section class="tip trap"><p>${P.caution}</p></section>
 </section>
-<section>
+${OBSERVED_TYPES.length ? `<section>
   <h2>${P.types}</h2>
   <p class="muted">${P.typesNote}</p>
   <div class="table-wrap"><table class="plan">
     <thead><tr>${P.typesHead.map((h) => `<th scope="col">${h}</th>`).join('')}</tr></thead>
     <tbody>${types}</tbody>
   </table></div>
-</section>
+</section>` : ''}
 <section>
   <h2>${P.howto}</h2>
   <ol class="facts">${P.steps.map(([k, v]) => `<li><b>${k}</b> ${v}</li>`).join('')}</ol>
@@ -848,7 +656,7 @@ function renderPapers(lang) {
 
 const VOCAB_UI = {
   en: {
-    title: 'Word list · MCA CET Prep',
+    title: `Word list · ${EXAM.brand.en}`,
     description: '200 high-frequency exam words with meanings, synonyms, antonyms, Marathi meanings, flashcards and a synonym quiz.',
     eyebrow: 'Vocabulary',
     h1: (n) => `${n} words for the English section`,
@@ -858,7 +666,7 @@ const VOCAB_UI = {
     i18n: { scope: 'Choose words', all: 'All words', unknown: 'Didn’t know', day: 'Day', flashcards: 'Flashcards', quiz: 'Quiz (10 Q)', setupNote: 'Flashcards: see the word, recall the meaning, then check. Quiz: synonym and antonym questions made from the list, in exam style.', empty: 'No words in this set yet.', show: 'Show meaning', knew: 'Knew it', didnt: 'Didn’t know', stop: 'Stop', backToSetup: 'Back', cardsDone: '{n} cards done, {m} marked “didn’t know”.', quizDone: 'Score: {r} / {n}', missed: 'Words to revise:', quizAgain: 'Another 10', synOf: 'Synonym of', antOf: 'Antonym of', next: 'Next →', syn: 'Synonyms', ant: 'Antonyms', markUnknown: 'Didn’t know', marked: '✓ Marked' },
   },
   mr: {
-    title: 'शब्दसंग्रह · MCA CET तयारी',
+    title: `शब्दसंग्रह · ${EXAM.brand.mr}`,
     description: 'परीक्षेत वारंवार येणारे 200 इंग्रजी शब्द: अर्थ, समानार्थी, विरुद्धार्थी, मराठी अर्थ, flashcards आणि समानार्थी शब्दांची प्रश्नमंजुषा.',
     eyebrow: 'शब्दसंग्रह',
     h1: (n) => `इंग्रजी विभागासाठी ${n} शब्द`,
@@ -907,9 +715,9 @@ ${dayHtml}`;
 // drill task points at the mock page where the diagnostic result is shown.
 const TASK = {
   diag: { en: 'Take the 20-question diagnostic', mr: '20 प्रश्नांची प्रारंभिक चाचणी द्या', href: 'mock.html#diag' },
-  words: (d) => ({ en: `Words: Day ${d} (10 new words)`, mr: `शब्द: दिवस ${d} (10 नवे शब्द)`, href: `words.html#day-${d}` }),
-  wordsQuiz: { en: 'Words: a 10-question quiz on all words', mr: 'शब्द: सर्व शब्दांवर 10 प्रश्नांची प्रश्नमंजुषा', href: 'words.html' },
-  wordsReview: { en: 'Words: flashcards of the words you didn’t know', mr: 'शब्द: माहीत नव्हते त्या शब्दांची flashcards', href: 'words.html' },
+  words: (d) => ({ en: `Words: Day ${d} (10 new words)`, mr: `शब्द: दिवस ${d} (10 नवे शब्द)`, href: `words.html#day-${d}`, words: true }),
+  wordsQuiz: { en: 'Words: a 10-question quiz on all words', mr: 'शब्द: सर्व शब्दांवर 10 प्रश्नांची प्रश्नमंजुषा', href: 'words.html', words: true },
+  wordsReview: { en: 'Words: flashcards of the words you didn’t know', mr: 'शब्द: माहीत नव्हते त्या शब्दांची flashcards', href: 'words.html', words: true },
   drill: { en: 'Drill: 10 questions from your weakest section', mr: 'झटपट सराव: सर्वात कमकुवत विभागाचे 10 प्रश्न', href: 'mock.html' },
   retry: { en: 'Retry my mistakes', mr: 'माझ्या चुका पुन्हा सोडवा', href: 'mock.html#retry' },
   catchUp: { en: 'Catch-up: finish any topic left over from this week', mr: 'राहिलेले: या आठवड्यातील उरलेले विषय पूर्ण करा', href: null },
@@ -945,14 +753,14 @@ STUDY_PLAN.forEach((week, wi) => {
       if (day <= 20) tasks.push(TASK.words(day));
       else tasks.push(day % 2 ? TASK.wordsQuiz : TASK.wordsReview);
     }
-    DAILY.push({ day, week: wi + 1, topics: d <= 6 ? perDay[d - 1] : [], tasks });
+    DAILY.push({ day, week: wi + 1, topics: d <= 6 ? perDay[d - 1] : [], tasks: tasks.filter((t) => EXAM.features.words || !t.words) });
   }
 });
 
 const PLAN_UI = {
   en: {
-    title: 'Day-by-day plan · MCA CET Prep',
-    description: '56-day MAH-MCA-CET study plan: one or two topics a day, ten words a day, drills, retries and mock tests, with today highlighted.',
+    title: `Day-by-day plan · ${EXAM.brand.en}`,
+    description: `56-day ${EXAM.examName} study plan: one or two topics a day, ten words a day, drills, retries and mock tests, with today highlighted.`,
     eyebrow: '8 weeks · 56 days',
     h1: 'Day-by-day plan',
     lede: 'The weekly plan broken into 56 days: one or two topics a day plus a small daily habit. Press “Start the plan today” and this page highlights today’s row; the home page shows today’s tasks too. Behind by a day? Do today’s row, not yesterday’s: every week ends with a catch-up day.',
@@ -960,8 +768,8 @@ const PLAN_UI = {
     i18n: { start: 'Start the plan today', startedOn: 'Started on {date}', todayIs: 'Today is Day {n}', complete: 'All 56 days are over. Good luck!', goToday: 'Go to today', reset: 'Reset', confirmReset: 'Clear the start date and the day ticks?', done: 'Day done' },
   },
   mr: {
-    title: 'दिवसागणिक आराखडा · MCA CET तयारी',
-    description: '56 दिवसांचा MAH-MCA-CET अभ्यास आराखडा: रोज एक-दोन विषय, रोज दहा शब्द, झटपट सराव, चुकांचा सराव आणि सराव परीक्षा, आजचा दिवस ठळक.',
+    title: `दिवसागणिक आराखडा · ${EXAM.brand.mr}`,
+    description: `56 दिवसांचा ${EXAM.examName} अभ्यास आराखडा: रोज एक-दोन विषय, रोज दहा शब्द, झटपट सराव, चुकांचा सराव आणि सराव परीक्षा, आजचा दिवस ठळक.`,
     eyebrow: '8 आठवडे · 56 दिवस',
     h1: 'दिवसागणिक आराखडा',
     lede: 'आठवड्याचा आराखडा 56 दिवसांत विभागलेला: रोज एक-दोन विषय आणि एक छोटी रोजची सवय. “आजपासून आराखडा सुरू करा” दाबा, म्हणजे हे पान आजची ओळ ठळक दाखवते; मुख्यपृष्ठावरही आजची कामे दिसतात. एक दिवस मागे पडलात? कालची नव्हे, आजची ओळ पूर्ण करा: प्रत्येक आठवड्याच्या शेवटी राहिलेले भरून काढण्याचा दिवस आहे.',
@@ -973,7 +781,7 @@ const PLAN_UI = {
 function renderPlan(lang) {
   const P = PLAN_UI[lang];
   const weeks = STUDY_PLAN.map((w, wi) => {
-    const focus = lang === 'mr' ? PLAN_MR[wi].focus : w.focus;
+    const focus = w.focus[lang];
     const rows = DAILY.filter((x) => x.week === wi + 1).map((x) => {
       const chips = x.topics.map((id) => {
         const s = sectionOf(id);
@@ -1015,6 +823,43 @@ function renderPlanData() {
   return `window.MCA_PLAN = ${JSON.stringify({ total: days.length, labels, days })};\n`;
 }
 
+function renderAbout(lang) {
+  const A = ABOUT[lang];
+  const U = ABOUT_UI[lang];
+  const sections = SECTIONS.map((raw) => sec(raw, lang));
+  const table = `<section>
+  <h2>${U.pattern}</h2>
+  <div class="table-wrap"><table class="plan sources">
+    <thead><tr>${U.head.map((h) => `<th scope="col">${h}</th>`).join('')}</tr></thead>
+    <tbody>${sections.map((x) => `<tr><td>${x.name}</td><td>${x.questions}</td><td>${x.questions * EXAM.marksPerQuestion}</td></tr>`).join('')}
+    <tr><th scope="row">${U.total}</th><td><b>${EXAM.questions}</b></td><td><b>${EXAM.marks}</b></td></tr></tbody>
+  </table></div>
+  <ul class="facts">
+    <li><b>${U.duration}:</b> ${U.minutes(EXAM.minutes)}</li>
+    <li><b>${U.perQ}:</b> ${EXAM.marksPerQuestion}</li>
+    <li><b>${U.negative}:</b> ${EXAM.negativeMarks ? U.each(EXAM.negativeMarks) : U.none}</li>
+    <li><b>${U.medium}:</b> ${EXAM.medium[lang]}</li>
+    <li><b>${U.mode}:</b> ${EXAM.mode[lang]}</li>
+    <li><b>${U.eligibility}:</b> ${EXAM.eligibility[lang]}</li>
+  </ul>
+</section>`;
+  const blocks = A.blocks.map((b) => `<section>
+  <h2>${b.h}</h2>
+  ${(b.p ?? []).map((p) => `<p>${p}</p>`).join('\n  ')}
+  ${b.ul ? `<ul class="facts">${b.ul.map((x) => `<li>${x}</li>`).join('')}</ul>` : ''}
+  ${b.links ? `<ul class="facts">${b.links.map(([label, href]) => `<li><a href="${href}" rel="noopener">${label}</a></li>`).join('')}</ul>` : ''}
+</section>`);
+  const hasLinks = A.blocks.length && A.blocks[A.blocks.length - 1].links;
+  if (hasLinks) blocks.splice(blocks.length - 1, 0, table); else blocks.push(table);
+  const body = `<section class="hero">
+  <p class="eyebrow">${A.eyebrow}</p>
+  <h1>${A.h1}</h1>
+  <p class="lede">${A.lede}</p>
+</section>
+${blocks.join('\n')}`;
+  return page({ lang, file: 'about.html', title: A.title, description: A.description, body });
+}
+
 function renderTerms(lang) {
   const R = TERMS[lang];
   const date = new Date(`${TERMS.updated}T00:00:00Z`).toLocaleDateString(lang === 'mr' ? 'mr-IN' : 'en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -1033,8 +878,8 @@ ${R.sections.map((sec) => `  <h2>${sec.h}</h2>\n${sec.p.map((p) => `  <p>${p}</p
 function renderBank() {
   const bank = SECTIONS.map((s) => ({
     id: s.id,
-    name: { en: s.name, mr: SECTION_MR[s.id].name },
-    short: { en: s.short, mr: SECTION_MR[s.id].short },
+    name: s.name,
+    short: s.short,
     hue: s.hue,
     questions: s.questions,
     items: s.topics.flatMap((t) => {
@@ -1052,7 +897,7 @@ function renderBank() {
       }));
     }),
   }));
-  return `window.MCA_BANK = ${JSON.stringify({ minutes: EXAM.minutes, marksPerQuestion: EXAM.marksPerQuestion, sections: bank })};\n`;
+  return `window.MCA_BANK = ${JSON.stringify({ minutes: EXAM.minutes, marksPerQuestion: EXAM.marksPerQuestion, negativeMarks: EXAM.negativeMarks, secondsPerQuestion: Math.round((EXAM.minutes * 60) / EXAM.questions), sections: bank })};\n`;
 }
 
 // ---------- redirect mode ----------
@@ -1060,7 +905,7 @@ function renderBank() {
 // visitors have the old service worker with the whole site cached, so the new sw.js is a
 // kill switch: it clears the caches, unregisters itself and reloads open pages.
 
-const PAGE_FILES = ['index.html', ...SECTIONS.map((s) => `${s.id}.html`), 'plan.html', 'words.html', 'revision.html', 'mock.html', 'papers.html', 'terms.html'];
+const PAGE_FILES = ['index.html', 'about.html', ...SECTIONS.map((s) => `${s.id}.html`), 'plan.html', ...(EXAM.features.words ? ['words.html'] : []), 'revision.html', 'mock.html', 'papers.html', 'terms.html'];
 const cleanPath = (rel) => rel.replace(/(^|\/)index\.html$/, '$1').replace(/\.html$/, '');
 
 function redirectStub(target) {
@@ -1070,15 +915,15 @@ function redirectStub(target) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>MCA CET Prep has moved</title>
+<title>${EXAM.brand.en} has moved</title>
 <link rel="canonical" href="${target}">
 <meta http-equiv="refresh" content="0; url=${target}">
 <script>location.replace(${JSON.stringify(target)} + location.hash);</script>
 <style>body{font:16px/1.6 system-ui,sans-serif;margin:40px auto;max-width:40em;padding:0 16px;color:#222}</style>
 </head>
 <body>
-<p>MCA CET Prep has moved to <a href="${target}">${target}</a>.</p>
-<p lang="mr">MCA CET तयारी आता <a href="${target}">${target}</a> इथे आहे.</p>
+<p>${EXAM.brand.en} has moved to <a href="${target}">${target}</a>.</p>
+<p lang="mr">${EXAM.brand.mr} आता <a href="${target}">${target}</a> इथे आहे.</p>
 </body>
 </html>
 `;
@@ -1092,7 +937,7 @@ if (REDIRECT) {
   }
   // Any other path (deep links, old asset URLs): forward to the same path on the new host.
   await writeFile(join(OUT, '404.html'), redirectStub(`${REDIRECT}/`).replace('<script>', `<script>
-var path = location.pathname.replace(/^\\/mca-cet-prep(\\/|$)/, '').replace(/^\\/+/, '').replace(/(^|\\/)index\\.html$/, '$1').replace(/\\.html$/, '');
+var path = location.pathname.replace(new RegExp('^' + ${JSON.stringify(EXAM.oldPathPrefix)} + '(/|$)'), '').replace(/^\\/+/, '').replace(/(^|\\/)index\\.html$/, '$1').replace(/\\.html$/, '');
 if (path === '404') path = '';
 location.replace(${JSON.stringify(REDIRECT)} + '/' + path + location.search + location.hash);
 </script><script>`));
@@ -1123,21 +968,20 @@ async function emit(rel, content) {
 }
 for (const f of await readdir(join(ROOT, 'src'))) outputs.push(`assets/${f}`);
 await emit('assets/bank.js', renderBank());
-await emit('assets/vocab-data.js', `window.MCA_VOCAB = ${JSON.stringify(VOCAB ?? [])};\n`);
+if (EXAM.features.words) await emit('assets/vocab-data.js', `window.MCA_VOCAB = ${JSON.stringify(VOCAB ?? [])};\n`);
 await emit('assets/plan-data.js', renderPlanData());
 await writeFile(join(OUT, '.nojekyll'), '');
-let pages = 0;
 for (const lang of ['en', 'mr']) {
   const dir = lang === 'en' ? '' : 'mr/';
   await emit(`${dir}index.html`, renderHome(lang));
+  await emit(`${dir}about.html`, renderAbout(lang));
   for (const s of SECTIONS) await emit(`${dir}${s.id}.html`, renderSection(s, lang));
   await emit(`${dir}plan.html`, renderPlan(lang));
-  await emit(`${dir}words.html`, renderVocab(lang));
+  if (EXAM.features.words) await emit(`${dir}words.html`, renderVocab(lang));
   await emit(`${dir}revision.html`, renderRevision(lang));
   await emit(`${dir}mock.html`, renderMock(lang));
   await emit(`${dir}papers.html`, renderPapers(lang));
   await emit(`${dir}terms.html`, renderTerms(lang));
-  pages += 7 + SECTIONS.length;
 }
 
 // Offline support: a service worker that precaches every page and asset. The cache name
@@ -1171,7 +1015,7 @@ for (const rel of outputs) hash.update(await readFile(join(OUT, rel)));
 hash.update(SW_BODY);
 const version = hash.digest('hex').slice(0, 12);
 await writeFile(join(OUT, 'sw.js'), `// Generated by scripts/build.mjs
-const CACHE = 'mca-${version}';
+const CACHE = '${EXAM.id}-${version}';
 const FILES = ${JSON.stringify(['./', 'mr/', ...outputs])};
 ${SW_BODY}`);
-console.log(`built ${pages} pages into site/ and site/mr/ (build ${version})`);
+console.log(`built ${outputs.filter((o) => o.endsWith('.html')).length} pages into site/ and site/mr/ (build ${version})`);

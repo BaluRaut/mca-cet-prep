@@ -2,23 +2,27 @@
 // time limit), a 10-question section drill, and "retry my mistakes" (questions answered wrongly
 // anywhere on the site). Questions stay in English (the exam's only medium); the Marathi page
 // adds a Marathi meaning on demand and Marathi explanations in the review. Time per question is
-// recorded, because in a 54-seconds-a-question exam that is where marks are lost.
+// recorded, because at the exam's pace that is where marks are lost. Marking (including negative
+// marking) and pace come from the bank, which the build fills from content/exam.mjs.
 (function () {
   'use strict';
 
   var BANK = window.MCA_BANK;
+  var NEG = BANK.negativeMarks || 0;                       // marks lost per wrong answer
+  var SPQ = BANK.secondsPerQuestion || 60;                 // the exam's seconds per question
+  var SLOW_SECONDS = Math.round(SPQ * 5 / 3);              // longer than this on one question is a time leak
   var root = document.getElementById('mock');
   var store = window.MCA_STORE;
   var WRONG = window.MCA_WRONG;
   var LANG = document.documentElement.lang === 'mr' ? 'mr' : 'en';
   var LETTERS = 'ABCD';
   var DRILL_SIZE = 10;
-  var DRILL_MINUTES = 10;
+  var DRILL_MINUTES = Math.max(5, Math.ceil(DRILL_SIZE * SPQ / 60));
   var DIAG_PER_SECTION = 5;
-  var DIAG_MINUTES = 18;          // 20 questions at the exam's 54 s each
+  var DIAG_MINUTES = Math.ceil(DIAG_PER_SECTION * BANK.sections.length * SPQ / 60);
   var RETRY_MAX = 25;
-  var RETRY_SECONDS_PER_Q = 90;
-  var SLOW_MS = 90 * 1000;        // longer than this on one question is a time leak
+  var RETRY_SECONDS_PER_Q = SLOW_SECONDS;
+  var SLOW_MS = SLOW_SECONDS * 1000;
   var test = null;
   var tick = null;
 
@@ -29,11 +33,11 @@
       diagStart: 'Take the diagnostic',
       diagLabel: 'Diagnostic',
       fullTitle: 'Full mock test',
-      fullDesc: function (n, split, min) { return n + ' questions in the real split (' + split + '), ' + min + ' minutes, one timer for the whole paper, no negative marking.'; },
+      fullDesc: function (n, split, min) { return n + ' questions in the real split (' + split + '), ' + min + ' minutes, one timer for the whole paper, ' + (NEG ? '−' + NEG + ' for each wrong answer.' : 'no negative marking.'); },
       fullStart: 'Start full mock',
       fullLabel: 'Full mock',
       retryTitle: 'Retry my mistakes',
-      retryDesc: function (n) { return n ? n + ' question(s) you answered wrongly on topic pages or in tests, up to ' + RETRY_MAX + ' per round, 90 seconds each. A correct answer removes the question from this list.' : 'Questions you answer wrongly anywhere on the site collect here, so you can retry them until they stick.'; },
+      retryDesc: function (n) { return n ? n + ' question(s) you answered wrongly on topic pages or in tests, up to ' + RETRY_MAX + ' per round, ' + SLOW_SECONDS + ' seconds each. A correct answer removes the question from this list.' : 'Questions you answer wrongly anywhere on the site collect here, so you can retry them until they stick.'; },
       retryStart: 'Retry mistakes',
       retryLabel: 'Retry mistakes',
       retryEmpty: 'Nothing to retry yet',
@@ -56,13 +60,14 @@
       allQuestions: 'All questions',
       question: 'Question ',
       legend: '<span class="l-ans">Answered</span><span class="l-mark">Marked for review</span><span>Not answered</span><span>Keys: 1–4 to choose, ← → to move</span>',
-      confirmBlank: function (n) { return n + ' question(s) are unanswered. There is no negative marking, so a blank is a sure zero. Submit anyway?'; },
+      confirmBlank: function (n) { return n + ' question(s) are unanswered. ' + (NEG ? 'A blank scores 0, a wrong answer costs −' + NEG + ': answer only where you can rule out options. Submit anyway?' : 'There is no negative marking, so a blank is a sure zero. Submit anyway?'); },
       confirm: 'Submit the test?',
       timeUp: 'Time is up',
       result: 'Result',
       summary: function (c, n, pct, time) { return c + ' correct of ' + n + ' · ' + pct + '% · time used ' + time; },
-      pace: function (avg, slow) { return 'Average ' + avg + ' s per question · ' + slow + ' question(s) took over 90 s'; },
-      paceNote: 'The exam allows 54 s per question. Questions over 90 s are where marks leak: learn to mark them and move on.',
+      pace: function (avg, slow) { return 'Average ' + avg + ' s per question · ' + slow + ' question(s) took over ' + SLOW_SECONDS + ' s'; },
+      paceNote: 'The exam allows ' + SPQ + ' s per question. Questions over ' + SLOW_SECONDS + ' s are where marks leak: learn to mark them and move on.',
+      negNote: function (w, n) { return w + ' wrong × −' + n + ' = −' + (w * n); },
       scoreHead: ['Section', 'Right', 'Wrong', 'Skipped', 'Marks'],
       startTitle: 'Your starting point',
       startIntro: 'Sections from weakest to strongest. Begin the study plan with the topics of your weakest section, and keep the strongest one warm with a drill a week.',
@@ -85,11 +90,11 @@
       diagStart: 'प्रारंभिक चाचणी द्या',
       diagLabel: 'प्रारंभिक चाचणी',
       fullTitle: 'पूर्ण सराव परीक्षा',
-      fullDesc: function (n, split, min) { return 'खऱ्या परीक्षेच्या विभागणीत ' + n + ' प्रश्न (' + split + '), ' + min + ' मिनिटे, संपूर्ण पेपरसाठी एकच टायमर, निगेटिव्ह मार्किंग नाही.'; },
+      fullDesc: function (n, split, min) { return 'खऱ्या परीक्षेच्या विभागणीत ' + n + ' प्रश्न (' + split + '), ' + min + ' मिनिटे, संपूर्ण पेपरसाठी एकच टायमर, ' + (NEG ? 'प्रत्येक चुकीच्या उत्तरासाठी −' + NEG + ' गुण.' : 'निगेटिव्ह मार्किंग नाही.'); },
       fullStart: 'पूर्ण सराव परीक्षा सुरू करा',
       fullLabel: 'पूर्ण सराव परीक्षा',
       retryTitle: 'माझ्या चुका पुन्हा सोडवा',
-      retryDesc: function (n) { return n ? 'विषय पानांवर किंवा परीक्षांमध्ये चुकलेले ' + n + ' प्रश्न, एका फेरीत जास्तीत जास्त ' + RETRY_MAX + ', प्रत्येकी 90 सेकंद. बरोबर उत्तर दिल्यावर प्रश्न या यादीतून काढला जातो.' : 'संकेतस्थळावर कुठेही चुकलेले प्रश्न इथे जमा होतात, म्हणजे ते पक्के होईपर्यंत पुन्हा सोडवता येतात.'; },
+      retryDesc: function (n) { return n ? 'विषय पानांवर किंवा परीक्षांमध्ये चुकलेले ' + n + ' प्रश्न, एका फेरीत जास्तीत जास्त ' + RETRY_MAX + ', प्रत्येकी ' + SLOW_SECONDS + ' सेकंद. बरोबर उत्तर दिल्यावर प्रश्न या यादीतून काढला जातो.' : 'संकेतस्थळावर कुठेही चुकलेले प्रश्न इथे जमा होतात, म्हणजे ते पक्के होईपर्यंत पुन्हा सोडवता येतात.'; },
       retryStart: 'चुका पुन्हा सोडवा',
       retryLabel: 'चुकांचा सराव',
       retryEmpty: 'अजून एकही चूक नाही',
@@ -112,13 +117,14 @@
       allQuestions: 'सर्व प्रश्न',
       question: 'प्रश्न ',
       legend: '<span class="l-ans">उत्तर दिले</span><span class="l-mark">पुन्हा पाहण्यासाठी खूण</span><span>उत्तर दिले नाही</span><span>कीबोर्ड: 1–4 पर्याय, ← → प्रश्न बदला</span>',
-      confirmBlank: function (n) { return n + ' प्रश्नांची उत्तरे दिलेली नाहीत. निगेटिव्ह मार्किंग नसल्यामुळे रिकामा प्रश्न म्हणजे खात्रीचा शून्य. तरीही सबमिट करायचे?'; },
+      confirmBlank: function (n) { return n + ' प्रश्नांची उत्तरे दिलेली नाहीत. ' + (NEG ? 'रिकाम्या प्रश्नाला 0 गुण, चुकीच्या उत्तराला −' + NEG + ': जिथे पर्याय बाद करता येतात तिथेच उत्तर द्या. तरीही सबमिट करायचे?' : 'निगेटिव्ह मार्किंग नसल्यामुळे रिकामा प्रश्न म्हणजे खात्रीचा शून्य. तरीही सबमिट करायचे?'); },
       confirm: 'परीक्षा सबमिट करायची?',
       timeUp: 'वेळ संपली',
       result: 'निकाल',
       summary: function (c, n, pct, time) { return n + ' पैकी ' + c + ' बरोबर · ' + pct + '% · लागलेला वेळ ' + time; },
-      pace: function (avg, slow) { return 'प्रत्येक प्रश्नाला सरासरी ' + avg + ' सेकंद · ' + slow + ' प्रश्नांना 90 सेकंदांपेक्षा जास्त लागले'; },
-      paceNote: 'परीक्षेत प्रत्येक प्रश्नाला 54 सेकंद मिळतात. 90 सेकंदांपेक्षा जास्त घेणारे प्रश्न म्हणजे गुणांची गळती: त्यांना खूण करून पुढे जायला शिका.',
+      pace: function (avg, slow) { return 'प्रत्येक प्रश्नाला सरासरी ' + avg + ' सेकंद · ' + slow + ' प्रश्नांना ' + SLOW_SECONDS + ' सेकंदांपेक्षा जास्त लागले'; },
+      paceNote: 'परीक्षेत प्रत्येक प्रश्नाला ' + SPQ + ' सेकंद मिळतात. ' + SLOW_SECONDS + ' सेकंदांपेक्षा जास्त घेणारे प्रश्न म्हणजे गुणांची गळती: त्यांना खूण करून पुढे जायला शिका.',
+      negNote: function (w, n) { return 'चुकलेले ' + w + ' × −' + n + ' = −' + (w * n); },
       scoreHead: ['विभाग', 'बरोबर', 'चूक', 'सोडलेले', 'गुण'],
       startTitle: 'कुठून सुरुवात करायची',
       startIntro: 'विभाग सर्वात कमकुवत ते सर्वात मजबूत या क्रमाने. अभ्यास आराखडा सर्वात कमकुवत विभागाच्या विषयांपासून सुरू करा, आणि मजबूत विभागासाठी आठवड्याला एक झटपट सराव ठेवा.',
@@ -412,7 +418,8 @@
       else { s.wrong++; WRONG.add(q.item.id); }
     });
     var m = BANK.marksPerQuestion;
-    var score = correct * m;
+    var wrongCount = t.questions.filter(function (q) { return q.chosen !== null && q.chosen !== q.answer; }).length;
+    var score = correct * m - wrongCount * NEG;
     var max = t.questions.length * m;
     var history = store.get('mca:mocks', []);
     history.push({ at: Date.now(), mode: t.mode, score: score, max: max });
@@ -424,11 +431,11 @@
       '<p class="eyebrow">' + (timedOut ? TEXT.timeUp : TEXT.result) + ' · ' + modeLabel(t.mode) + '</p>' +
       '<p class="result-score">' + score + ' / ' + max + '</p>' +
       '<p class="muted">' + TEXT.summary(correct, t.questions.length, Math.round(100 * correct / t.questions.length),
-        fmtTime(Math.min(Date.now(), t.endsAt) - t.startedAt)) + '</p>' +
+        fmtTime(Math.min(Date.now(), t.endsAt) - t.startedAt)) + (NEG ? ' · ' + TEXT.negNote(wrongCount, NEG) : '') + '</p>' +
       '<p class="muted">' + TEXT.pace(Math.round(totalTime / 1000 / t.questions.length), slow) + '</p>');
     var rows = BANK.sections.filter(function (s) { return per[s.id]; }).map(function (s) {
       var p = per[s.id];
-      return '<tr><td>' + L(s.name) + '</td><td>' + p.right + '</td><td>' + p.wrong + '</td><td>' + p.skipped + '</td><td>' + p.right * m + ' / ' + p.total * m + '</td></tr>';
+      return '<tr><td>' + L(s.name) + '</td><td>' + p.right + '</td><td>' + p.wrong + '</td><td>' + p.skipped + '</td><td>' + (p.right * m - p.wrong * NEG) + ' / ' + p.total * m + '</td></tr>';
     }).join('');
     head.appendChild(el('div', { class: 'table-wrap' },
       '<table class="score-table"><thead><tr>' + TEXT.scoreHead.map(function (h) { return '<th>' + h + '</th>'; }).join('') +
