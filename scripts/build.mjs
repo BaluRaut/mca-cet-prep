@@ -2,6 +2,8 @@
 //   node scripts/build.mjs          validate + build
 //   node scripts/build.mjs --check  validate only (exit 1 on errors)
 //   node scripts/build.mjs --draft  build even if the study plan or Marathi translations are incomplete
+//   node scripts/build.mjs --redirect https://host   validate, then emit only redirect stubs to that host
+//                                     (used by the old GitHub Pages address after the move)
 
 import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -18,6 +20,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'site');
 const CHECK_ONLY = process.argv.includes('--check');
 const DRAFT = process.argv.includes('--draft');
+const REDIRECT = process.argv.includes('--redirect') ? (process.argv[process.argv.indexOf('--redirect') + 1] ?? '').replace(/\/+$/, '') : null;
+if (process.argv.includes('--redirect') && !/^https?:\/\//.test(REDIRECT)) { console.error('--redirect needs a URL'); process.exit(1); }
 const LENIENT = CHECK_ONLY || DRAFT; // incomplete plan / translations are warnings, not errors
 const REPO_URL = 'https://github.com/BaluRaut/mca-cet-prep';
 
@@ -1049,6 +1053,60 @@ function renderBank() {
     }),
   }));
   return `window.MCA_BANK = ${JSON.stringify({ minutes: EXAM.minutes, marksPerQuestion: EXAM.marksPerQuestion, sections: bank })};\n`;
+}
+
+// ---------- redirect mode ----------
+// The old address keeps every URL working but sends visitors to the new host. Returning
+// visitors have the old service worker with the whole site cached, so the new sw.js is a
+// kill switch: it clears the caches, unregisters itself and reloads open pages.
+
+const PAGE_FILES = ['index.html', ...SECTIONS.map((s) => `${s.id}.html`), 'plan.html', 'words.html', 'revision.html', 'mock.html', 'papers.html', 'terms.html'];
+const cleanPath = (rel) => rel.replace(/(^|\/)index\.html$/, '$1').replace(/\.html$/, '');
+
+function redirectStub(target) {
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>MCA CET Prep has moved</title>
+<link rel="canonical" href="${target}">
+<meta http-equiv="refresh" content="0; url=${target}">
+<script>location.replace(${JSON.stringify(target)} + location.hash);</script>
+<style>body{font:16px/1.6 system-ui,sans-serif;margin:40px auto;max-width:40em;padding:0 16px;color:#222}</style>
+</head>
+<body>
+<p>MCA CET Prep has moved to <a href="${target}">${target}</a>.</p>
+<p lang="mr">MCA CET तयारी आता <a href="${target}">${target}</a> इथे आहे.</p>
+</body>
+</html>
+`;
+}
+
+if (REDIRECT) {
+  await rm(OUT, { recursive: true, force: true });
+  await mkdir(join(OUT, 'mr'), { recursive: true });
+  for (const dir of ['', 'mr/']) {
+    for (const f of PAGE_FILES) await writeFile(join(OUT, `${dir}${f}`), redirectStub(`${REDIRECT}/${cleanPath(`${dir}${f}`)}`));
+  }
+  // Any other path (deep links, old asset URLs): forward to the same path on the new host.
+  await writeFile(join(OUT, '404.html'), redirectStub(`${REDIRECT}/`).replace('<script>', `<script>
+var path = location.pathname.replace(/^\\/mca-cet-prep(\\/|$)/, '').replace(/^\\/+/, '').replace(/(^|\\/)index\\.html$/, '$1').replace(/\\.html$/, '');
+if (path === '404') path = '';
+location.replace(${JSON.stringify(REDIRECT)} + '/' + path + location.search + location.hash);
+</script><script>`));
+  await writeFile(join(OUT, 'sw.js'), `// Kill switch: the site moved to ${REDIRECT}. Clear the old cache, unregister, reload.
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => e.waitUntil((async () => {
+  for (const k of await caches.keys()) await caches.delete(k);
+  await self.registration.unregister();
+  for (const c of await self.clients.matchAll({ type: 'window' })) c.navigate(c.url).catch(() => {});
+})()));
+`);
+  await writeFile(join(OUT, '.nojekyll'), '');
+  console.log(`built ${PAGE_FILES.length * 2} redirect stubs to ${REDIRECT} into site/`);
+  process.exit(0);
 }
 
 // ---------- write ----------

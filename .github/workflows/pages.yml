@@ -23,8 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Validate content and build
-        run: node scripts/build.mjs
+      - name: Validate content and build redirect pages to the new address
+        run: node scripts/build.mjs --redirect https://mca.balubhau.com
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:

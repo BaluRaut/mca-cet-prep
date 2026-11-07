@@ -2,7 +2,9 @@
 
 Free preparation for **MAH-MCA-CET**, the Maharashtra MCA Common Entrance Test, where **every topic is explained with an everyday analogy**.
 
-**Live site: https://baluraut.github.io/mca-cet-prep/** · **मराठी: https://baluraut.github.io/mca-cet-prep/mr/**
+**Live site: https://mca.balubhau.com/** · **मराठी: https://mca.balubhau.com/mr/**
+
+(The old address, baluraut.github.io/mca-cet-prep, redirects there.)
 
 The whole site is also available **in Marathi (मराठी)**. Every analogy, concept, formula sheet, worked example, trap and answer explanation is written in Marathi, and technical terms are given as मराठी (English). Practice and mock-test questions stay in English, because the real exam is English-only, and a Marathi meaning is shown with each question. Use the **मराठी / English** button on any page to switch languages without losing your place.
 
@@ -54,13 +56,13 @@ npm run check    # validate all content without building
 
 ## Add or fix content
 
-All study material lives in `content/maths.mjs`, `reasoning.mjs`, `english.mjs` and `computer.mjs`, with the word list in `content/vocab.mjs`. [`content/README.md`](content/README.md) describes the format. Marathi translations live in `content/mr/` (format in [`content/mr/README.md`](content/mr/README.md)), and interface text is in `content/i18n.mjs`. The build fails if a translation is missing or doesn't line up with its English topic. The build rejects a topic that has no analogy, a question whose options are not exactly four, an answer index outside 0–3, or unescaped HTML. Every push to `main` is validated and deployed to GitHub Pages by `.github/workflows/pages.yml`.
+All study material lives in `content/maths.mjs`, `reasoning.mjs`, `english.mjs` and `computer.mjs`, with the word list in `content/vocab.mjs`. [`content/README.md`](content/README.md) describes the format. Marathi translations live in `content/mr/` (format in [`content/mr/README.md`](content/mr/README.md)), and interface text is in `content/i18n.mjs`. The build fails if a translation is missing or doesn't line up with its English topic. The build rejects a topic that has no analogy, a question whose options are not exactly four, an answer index outside 0–3, or unescaped HTML. Every push to `main` is validated by `.github/workflows/pages.yml`, which deploys redirect pages to the old GitHub Pages address; the site itself is deployed to Cloudflare Pages from the private mirror.
 
 If you find a wrong answer, please [open an issue](https://github.com/BaluRaut/mca-cet-prep/issues) and include the topic and question number.
 
 ## Terms
 
-The site is for learning purposes only and is not affiliated with the State CET Cell; see the [terms and conditions](https://baluraut.github.io/mca-cet-prep/terms.html) page (also in Marathi).
+The site is for learning purposes only and is not affiliated with the State CET Cell; see the [terms and conditions](https://mca.balubhau.com/terms) page (also in Marathi).
 
 ## License
 
