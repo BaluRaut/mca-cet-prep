@@ -58,6 +58,10 @@ All study material lives in `content/maths.mjs`, `reasoning.mjs`, `english.mjs` 
 
 If you find a wrong answer, please [open an issue](https://github.com/BaluRaut/mca-cet-prep/issues) and include the topic and question number.
 
+## Terms
+
+The site is for learning purposes only and is not affiliated with the State CET Cell; see the [terms and conditions](https://baluraut.github.io/mca-cet-prep/terms.html) page (also in Marathi).
+
 ## License
 
 MIT

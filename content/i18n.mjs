@@ -14,6 +14,7 @@ export const UI = {
     nav: { home: 'Home', plan: 'Plan', words: 'Words', revision: 'Revision', papers: 'Past papers', mock: 'Mock test' },
     sectionsLabel: 'Sections',
     footSource: (url, year, site) => `Exam pattern and syllabus from the official <a href="${url}">MAH-MCA-CET ${year} Information Brochure</a> (State CET Cell, Maharashtra). Always confirm dates and rules on <a href="${site}">cetcell.mahacet.org</a>.`,
+    footTerms: '<a href="terms.html">Terms and conditions</a> · For learning purposes only. This is not an official site and is not affiliated with the State CET Cell.',
     footRepo: (repo) => `Free and open source · <a href="${repo}">GitHub</a> · Found a wrong answer? <a href="${repo}/issues">Open an issue</a>.`,
 
     topicEyebrow: (short, syllabus, i, n) => `${short} · ${syllabus} · Topic ${i} of ${n}`,
@@ -50,6 +51,7 @@ export const UI = {
     nav: { home: 'मुख्यपृष्ठ', plan: 'आराखडा', words: 'शब्द', revision: 'उजळणी', papers: 'मागील प्रश्नपत्रिका', mock: 'सराव परीक्षा' },
     sectionsLabel: 'विभाग',
     footSource: (url, year, site) => `परीक्षेचे स्वरूप व अभ्यासक्रम अधिकृत <a href="${url}">MAH-MCA-CET ${year} माहितीपुस्तिकेतून</a> (राज्य सामाईक प्रवेश परीक्षा कक्ष, महाराष्ट्र) घेतले आहेत. तारखा व नियम नेहमी <a href="${site}">cetcell.mahacet.org</a> वर तपासा.`,
+    footTerms: '<a href="terms.html">अटी व शर्ती</a> · केवळ अभ्यासासाठी. हे अधिकृत संकेतस्थळ नाही आणि राज्य CET कक्षाशी संलग्न नाही.',
     footRepo: (repo) => `मोफत आणि मुक्त स्रोत · <a href="${repo}">GitHub</a> · एखादे उत्तर चुकीचे वाटले? <a href="${repo}/issues">इथे कळवा</a>.`,
 
     topicEyebrow: (short, syllabus, i, n) => `${short} · ${syllabus} · विषय ${i} / ${n}`,

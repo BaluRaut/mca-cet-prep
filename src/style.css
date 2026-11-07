@@ -306,6 +306,9 @@ section > .tip { margin-top: 12px; }
 .rev ul { padding-left: 1.1em; margin: 0; }
 .rev li { margin: 3px 0; }
 
+.terms { max-width: 72ch; }
+.terms h2 { font-size: 1.2rem; margin-top: 1.4em; }
+.foot-terms { font-weight: 500; }
 footer.site-foot { margin-top: 56px; padding-block: 20px 40px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88rem; }
 
 /* mock test */

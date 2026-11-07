@@ -12,6 +12,7 @@ import { EXAM, SECTIONS } from '../content/sections.mjs';
 import { STUDY_PLAN } from '../content/plan.mjs';
 import { PLAN_MR, SECTION_MR, SYLLABUS_MR, UI } from '../content/i18n.mjs';
 import { OBSERVED_TYPES, PAPER_SOURCES } from '../content/papers.mjs';
+import { TERMS } from '../content/terms.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'site');
@@ -284,6 +285,7 @@ ${body}
 <footer class="wrap site-foot">
   <p>${T.footSource(EXAM.brochureUrl, EXAM.brochureYear, EXAM.officialSite)}</p>
   <p>${T.footRepo(REPO_URL)}</p>
+  <p class="foot-terms">${T.footTerms}</p>
 </footer>
 ${scripts.filter((s) => /-data\.js$|\/bank\.js$/.test(s)).map((s) => `<script src="${up}${s}"></script>`).join('\n')}
 <script src="${up}assets/app.js"></script>
@@ -1009,6 +1011,21 @@ function renderPlanData() {
   return `window.MCA_PLAN = ${JSON.stringify({ total: days.length, labels, days })};\n`;
 }
 
+function renderTerms(lang) {
+  const R = TERMS[lang];
+  const date = new Date(`${TERMS.updated}T00:00:00Z`).toLocaleDateString(lang === 'mr' ? 'mr-IN' : 'en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const body = `<section class="hero">
+  <p class="eyebrow">${R.eyebrow}</p>
+  <h1>${R.h1}</h1>
+  <p class="lede">${R.lede}</p>
+  <p class="muted">${R.updatedLabel}: ${date}</p>
+</section>
+<section class="terms">
+${R.sections.map((sec) => `  <h2>${sec.h}</h2>\n${sec.p.map((p) => `  <p>${p}</p>`).join('\n')}`).join('\n')}
+</section>`;
+  return page({ lang, file: 'terms.html', title: R.title, description: R.description, body });
+}
+
 function renderBank() {
   const bank = SECTIONS.map((s) => ({
     id: s.id,
@@ -1061,7 +1078,8 @@ for (const lang of ['en', 'mr']) {
   await emit(`${dir}revision.html`, renderRevision(lang));
   await emit(`${dir}mock.html`, renderMock(lang));
   await emit(`${dir}papers.html`, renderPapers(lang));
-  pages += 6 + SECTIONS.length;
+  await emit(`${dir}terms.html`, renderTerms(lang));
+  pages += 7 + SECTIONS.length;
 }
 
 // Offline support: a service worker that precaches every page and asset. The cache name
