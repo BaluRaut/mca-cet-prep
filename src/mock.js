@@ -28,8 +28,8 @@
 
   var TEXT = {
     en: {
-      diagTitle: 'Start here: 20-question diagnostic',
-      diagDesc: function (min) { return '5 questions from each section, ' + min + ' minutes. Shows which sections to start with before you follow the study plan.'; },
+      diagTitle: function (n) { return 'Start here: ' + n + '-question diagnostic'; },
+      diagDesc: function (min) { return DIAG_PER_SECTION + ' questions from each section, ' + min + ' minutes. Shows which sections to start with before you follow the study plan.'; },
       diagStart: 'Take the diagnostic',
       diagLabel: 'Diagnostic',
       fullTitle: 'Full mock test',
@@ -85,8 +85,8 @@
       meaning: null,
     },
     mr: {
-      diagTitle: 'इथून सुरू करा: 20 प्रश्नांची प्रारंभिक चाचणी',
-      diagDesc: function (min) { return 'प्रत्येक विभागातून 5 प्रश्न, ' + min + ' मिनिटे. अभ्यास आराखडा सुरू करण्याआधी कोणत्या विभागापासून सुरुवात करायची ते दाखवते.'; },
+      diagTitle: function (n) { return 'इथून सुरू करा: ' + n + ' प्रश्नांची प्रारंभिक चाचणी'; },
+      diagDesc: function (min) { return 'प्रत्येक विभागातून ' + DIAG_PER_SECTION + ' प्रश्न, ' + min + ' मिनिटे. अभ्यास आराखडा सुरू करण्याआधी कोणत्या विभागापासून सुरुवात करायची ते दाखवते.'; },
       diagStart: 'प्रारंभिक चाचणी द्या',
       diagLabel: 'प्रारंभिक चाचणी',
       fullTitle: 'पूर्ण सराव परीक्षा',
@@ -210,7 +210,7 @@
     var split = BANK.sections.map(function (s) { return Math.min(s.questions, s.items.length) + ' ' + L(s.short); }).join(', ');
     var grid = el('div', { class: 'mock-setup' });
 
-    var diag = el('div', { class: 'mode diag', id: 'diag' }, '<h3>' + TEXT.diagTitle + '</h3><p>' + TEXT.diagDesc(DIAG_MINUTES) + '</p>');
+    var diag = el('div', { class: 'mode diag', id: 'diag' }, '<h3>' + TEXT.diagTitle(DIAG_PER_SECTION * BANK.sections.length) + '</h3><p>' + TEXT.diagDesc(DIAG_MINUTES) + '</p>');
     diag.appendChild(el('button', { class: 'button', type: 'button', onclick: function () { start('diag'); } }, TEXT.diagStart));
     grid.appendChild(diag);
 
