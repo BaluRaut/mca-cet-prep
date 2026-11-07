@@ -10,6 +10,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { EXAM, SECTIONS } from '../content/sections.mjs';
 import { STUDY_PLAN } from '../content/plan.mjs';
 import { PLAN_MR, SECTION_MR, SYLLABUS_MR, UI } from '../content/i18n.mjs';
+import { OBSERVED_TYPES, PAPER_SOURCES } from '../content/papers.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'site');
@@ -177,6 +178,9 @@ for (const [wi, week] of STUDY_PLAN.entries()) {
 for (const id of seenIds.keys()) {
   if (!STUDY_PLAN.some((w) => w.topics?.includes(id))) warnings.push(`topic "${id}" is not in the study plan`);
 }
+for (const o of OBSERVED_TYPES) {
+  if (o.topic && !seenIds.has(o.topic)) (LENIENT ? warnings : errors).push(`papers: unknown topic id "${o.topic}"`);
+}
 if (PLAN_MR.length !== STUDY_PLAN.length) errors.push('i18n PLAN_MR must have one entry per study-plan week');
 
 for (const w of warnings) console.warn(`warn  ${w}`);
@@ -222,6 +226,7 @@ function page({ lang, file, title, description, hue = 250, body, scripts = [] })
     ['index.html', T.nav.home],
     ...SECTIONS.map((s) => [`${s.id}.html`, sec(s, lang).short]),
     ['revision.html', T.nav.revision],
+    ['papers.html', T.nav.papers],
     ['mock.html', T.nav.mock],
   ].map(([href, label]) => `<a href="${href}"${href === file ? ' aria-current="page"' : ''}>${label}</a>`).join('');
   const other = lang === 'en' ? `mr/${file}` : `../${file}`;
@@ -599,6 +604,98 @@ function renderMock(lang) {
   return page({ lang, file: 'mock.html', title: M.title, description: M.description, body, scripts: ['assets/bank.js', 'assets/mock.js'] });
 }
 
+const PAPERS = {
+  en: {
+    title: 'Previous papers · MCA CET Prep',
+    description: 'Where to find MAH-MCA-CET previous year question papers, what each source really contains, and how to practise with them.',
+    eyebrow: 'Reference',
+    h1: 'Previous year papers',
+    lede: 'Honest answer first: State CET Cell does not publish MCA CET question papers on its website. What exists is your own paper in the candidate login, and papers that other sites have collected. Here is what each source actually contains, what kinds of questions past papers show, and how to use one with this site.',
+    sources: 'Where to find them',
+    head: ['Source', 'Years', 'Type', 'Access'],
+    kinds: { official: 'Official', memory: 'Memory-based (unofficial)', unverified: 'Unofficial copy, not verified' },
+    open: 'Open',
+    caution: 'Unofficial papers can contain wrong answers or incomplete questions. If an answer key disagrees with your working, trust your working and check the topic here.',
+    types: 'What past papers actually ask',
+    typesNote: 'Question types seen in the 2023 memory-based paper, with the topic on this site that teaches each one.',
+    typesHead: ['Question type', 'Learn it here'],
+    gap: 'Not in the official syllabus, but asked',
+    howto: 'How to practise with a past paper',
+    steps: [
+      ['Set exam conditions.', 'Print it or open it full-screen, put your phone away, and set a timer: 90 minutes for 100 questions, or about 54 seconds per question if the paper is shorter.'],
+      ['Answer in one sitting.', 'No checking answers midway. Leave nothing blank: there is no negative marking.'],
+      ['Mark, then sort your mistakes.', 'For every wrong or skipped question, write down which topic it belongs to.'],
+      ['Fix the topic, not the question.', 'Open that topic here, read the analogy again, and redo its practice set until all four are right.'],
+      ['Repeat with a fresh paper.', 'Alternate past papers with the <a href="mock.html">mock test</a> here, which draws a new paper every time.'],
+    ],
+  },
+  mr: {
+    title: 'मागील प्रश्नपत्रिका · MCA CET तयारी',
+    description: 'MAH-MCA-CET च्या मागील वर्षांच्या प्रश्नपत्रिका कुठे मिळतात, प्रत्येक स्रोतात नेमके काय आहे, आणि त्यांचा सराव कसा करायचा.',
+    eyebrow: 'संदर्भ',
+    h1: 'मागील वर्षांच्या प्रश्नपत्रिका',
+    lede: 'आधी खरे उत्तर: राज्य CET कक्ष MCA CET च्या प्रश्नपत्रिका आपल्या संकेतस्थळावर प्रसिद्ध करत नाही. उपलब्ध आहे ते म्हणजे उमेदवार लॉगिनमधील तुमची स्वतःची प्रश्नपत्रिका, आणि इतर संकेतस्थळांनी गोळा केलेल्या प्रश्नपत्रिका. प्रत्येक स्रोतात नेमके काय आहे, मागील प्रश्नपत्रिकांमध्ये कोणत्या प्रकारचे प्रश्न येतात, आणि त्यांचा या संकेतस्थळासोबत कसा वापर करायचा, ते इथे दिले आहे.',
+    sources: 'कुठे मिळतील',
+    head: ['स्रोत', 'वर्षे', 'प्रकार', 'प्रवेश'],
+    kinds: { official: 'अधिकृत', memory: 'आठवणीवर आधारित (अनधिकृत)', unverified: 'अनधिकृत प्रत, खात्री केलेली नाही' },
+    open: 'उघडा',
+    caution: 'अनधिकृत प्रश्नपत्रिकांमध्ये चुकीची उत्तरे किंवा अपूर्ण प्रश्न असू शकतात. उत्तरसूची तुमच्या उकलीशी जुळत नसेल, तर तुमच्या उकलीवर विश्वास ठेवा आणि इथे तो विषय तपासा.',
+    types: 'मागील प्रश्नपत्रिकांमध्ये प्रत्यक्ष काय विचारले जाते',
+    typesNote: '2023 च्या आठवणीवर आधारित प्रश्नपत्रिकेत दिसलेले प्रश्नांचे प्रकार, आणि ते शिकवणारा या संकेतस्थळावरील विषय.',
+    typesHead: ['प्रश्नाचा प्रकार', 'इथे शिका'],
+    gap: 'अधिकृत अभ्यासक्रमात नाही, पण विचारले जाते',
+    howto: 'मागील प्रश्नपत्रिकेने सराव कसा करायचा',
+    steps: [
+      ['परीक्षेसारखे वातावरण तयार करा.', 'प्रिंट काढा किंवा पूर्ण स्क्रीनवर उघडा, फोन बाजूला ठेवा आणि टायमर लावा: 100 प्रश्नांसाठी 90 मिनिटे, किंवा प्रश्नपत्रिका लहान असेल तर प्रत्येक प्रश्नाला सुमारे 54 सेकंद.'],
+      ['एका बैठकीत सोडवा.', 'मध्येच उत्तरे तपासू नका. एकही प्रश्न रिकामा सोडू नका: निगेटिव्ह मार्किंग नाही.'],
+      ['गुण काढा, मग चुकांची वर्गवारी करा.', 'प्रत्येक चुकलेल्या किंवा सोडलेल्या प्रश्नासाठी तो कोणत्या विषयाचा आहे ते लिहा.'],
+      ['प्रश्न नव्हे, विषय पक्का करा.', 'तो विषय इथे उघडा, उपमा पुन्हा वाचा, आणि चारही प्रश्न बरोबर येईपर्यंत त्याचा सराव पुन्हा सोडवा.'],
+      ['नवीन प्रश्नपत्रिकेने पुन्हा करा.', 'मागील प्रश्नपत्रिका आणि इथली <a href="mock.html">सराव परीक्षा</a> आलटून-पालटून द्या; सराव परीक्षा दर वेळी नवीन प्रश्नपत्रिका तयार करते.'],
+    ],
+  },
+};
+
+function renderPapers(lang) {
+  const P = PAPERS[lang];
+  const rows = PAPER_SOURCES.map((src) => `<tr>
+      <td><b>${src.name[lang]}</b><br><span class="muted">${src.note[lang]}</span></td>
+      <td>${src.years[lang]}</td>
+      <td><span class="badge badge-${src.kind}">${P.kinds[src.kind]}</span></td>
+      <td>${src.access[lang]}<br><a href="${src.url}" rel="noopener">${P.open} ↗</a></td>
+    </tr>`).join('');
+  const types = OBSERVED_TYPES.map((o) => {
+    if (!o.topic) return `<tr><td>${o[lang]}</td><td><span class="badge badge-memory">${P.gap}</span></td></tr>`;
+    const s = sectionOf(o.topic);
+    return `<tr><td>${o[lang]}</td><td><a class="chip" style="--hue:${s.hue}" href="${s.id}.html#${o.topic}" data-chip="${o.topic}">${view(topicById(o.topic), lang).title}</a></td></tr>`;
+  }).join('');
+  const body = `<section class="hero">
+  <p class="eyebrow">${P.eyebrow}</p>
+  <h1>${P.h1}</h1>
+  <p class="lede">${P.lede}</p>
+</section>
+<section>
+  <h2>${P.sources}</h2>
+  <div class="table-wrap"><table class="plan sources">
+    <thead><tr>${P.head.map((h) => `<th scope="col">${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>
+  <section class="tip trap"><p>${P.caution}</p></section>
+</section>
+<section>
+  <h2>${P.types}</h2>
+  <p class="muted">${P.typesNote}</p>
+  <div class="table-wrap"><table class="plan">
+    <thead><tr>${P.typesHead.map((h) => `<th scope="col">${h}</th>`).join('')}</tr></thead>
+    <tbody>${types}</tbody>
+  </table></div>
+</section>
+<section>
+  <h2>${P.howto}</h2>
+  <ol class="facts">${P.steps.map(([k, v]) => `<li><b>${k}</b> ${v}</li>`).join('')}</ol>
+</section>`;
+  return page({ lang, file: 'papers.html', title: P.title, description: P.description, body });
+}
+
 function renderBank() {
   const bank = SECTIONS.map((s) => ({
     id: s.id,
@@ -639,6 +736,7 @@ for (const lang of ['en', 'mr']) {
   for (const s of SECTIONS) await writeFile(join(dir, `${s.id}.html`), renderSection(s, lang));
   await writeFile(join(dir, 'revision.html'), renderRevision(lang));
   await writeFile(join(dir, 'mock.html'), renderMock(lang));
-  pages += 3 + SECTIONS.length;
+  await writeFile(join(dir, 'papers.html'), renderPapers(lang));
+  pages += 4 + SECTIONS.length;
 }
 console.log(`built ${pages} pages into site/ and site/mr/`);

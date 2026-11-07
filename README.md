@@ -19,6 +19,7 @@ You can also use:
 
 - a **mock test** with a full 100-question paper in the real 30/30/20/20 split and a 90-minute timer, or a 10-question drill per section, followed by a section-wise score, a list of weak topics and answer review;
 - a printable **revision sheet** that gives the one-line analogy and key formulas for every topic;
+- a **previous papers** guide: where past MCA CET papers can actually be found (the official one is only in the candidate login), what each source really contains, the question types past papers show mapped to topics here, and how to practise with one;
 - an **8-week study plan** that mixes all four sections each week;
 - **progress tracking**: tick a topic as done and it is remembered in your browser.
 
