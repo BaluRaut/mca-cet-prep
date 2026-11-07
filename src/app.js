@@ -2,6 +2,7 @@
 (function () {
   'use strict';
 
+  var MR = document.documentElement.lang === 'mr';
   var store = {
     get: function (key, fallback) {
       try { var v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); } catch (e) { return fallback; }
@@ -39,7 +40,8 @@
     });
     var why = mcq.querySelector('.why');
     why.hidden = false;
-    why.insertAdjacentText('afterbegin', picked === answer ? '✓ Correct. ' : '✗ Not quite. ');
+    var verdict = picked === answer ? (MR ? '✓ बरोबर. ' : '✓ Correct. ') : (MR ? '✗ चुकले. ' : '✗ Not quite. ');
+    why.insertAdjacentText('afterbegin', verdict);
   });
 
   // Topic progress, saved per browser.
@@ -63,6 +65,14 @@
     store.set('mca:done', Array.from(done));
     paint();
   });
+
+  // Switching language keeps you on the same topic.
+  var langLink = document.querySelector('.lang-switch');
+  if (langLink) {
+    langLink.addEventListener('click', function () {
+      if (location.hash) langLink.href = langLink.href.split('#')[0] + location.hash;
+    });
+  }
 
   var printBtn = document.querySelector('.print');
   if (printBtn) printBtn.addEventListener('click', function () { window.print(); });

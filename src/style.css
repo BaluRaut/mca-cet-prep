@@ -80,8 +80,10 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Devanagari", "Kohinoor Devanagari", sans-serif;
 }
+:root:lang(mr) body { line-height: 1.8; }
+:root:lang(mr) .eyebrow, :root:lang(mr) .analogy-tag, :root:lang(mr) .toc h3, :root:lang(mr) .map th { letter-spacing: 0; text-transform: none; }
 h1, h2, h3 { line-height: 1.25; text-wrap: balance; }
 h1 { font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.6rem); margin: 0.2em 0 0.4em; letter-spacing: -0.02em; }
 h2 { font-size: clamp(1.35rem, 1.1rem + 1vw, 1.75rem); margin: 1.6em 0 0.6em; letter-spacing: -0.01em; }
@@ -102,6 +104,13 @@ header.site { position: sticky; top: 0; z-index: 5; background: color-mix(in okl
 .bar { display: flex; align-items: center; justify-content: space-between; padding-block: 10px 4px; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text); text-decoration: none; }
 .logo { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: oklch(50% 0.2 275); color: #fff; font-size: 0.78rem; letter-spacing: 0.02em; }
+.bar-actions { display: flex; align-items: center; gap: 8px; }
+.lang-switch { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent-text); font-weight: 600; font-size: 0.92rem; text-decoration: none; }
+.lang-switch:hover { background: var(--accent-soft); }
+.en-title { margin: -4px 0 10px; color: var(--muted); font-size: 0.95rem; }
+.q-help { margin: -8px 0 12px; padding: 6px 10px; border-left: 3px solid var(--analogy-border); background: var(--analogy-bg); border-radius: 0 8px 8px 0; font-size: 0.94rem; }
+details.q-help { margin: 0 0 10px; }
+details.q-help summary { font-size: 0.88rem; }
 .theme { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 999px; width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer; }
 .tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-block: 4px 8px; }
 .tabs::-webkit-scrollbar { display: none; }

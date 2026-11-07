@@ -2,7 +2,9 @@
 
 Free preparation for **MAH-MCA-CET**, the Maharashtra MCA Common Entrance Test, where **every topic is explained with an everyday analogy**.
 
-**Live site: https://baluraut.github.io/mca-cet-prep/**
+**Live site: https://baluraut.github.io/mca-cet-prep/** · **मराठी: https://baluraut.github.io/mca-cet-prep/mr/**
+
+The whole site is also available **in Marathi (मराठी)**. Every analogy, concept, formula sheet, worked example, trap and answer explanation is written in Marathi, and technical terms are given as मराठी (English). Practice and mock-test questions stay in English, because the real exam is English-only, and a Marathi meaning is shown with each question. Use the **मराठी / English** button on any page to switch languages without losing your place.
 
 Each topic page follows the same path:
 
@@ -45,7 +47,7 @@ npm run check    # validate all content without building
 
 ## Add or fix content
 
-All study material lives in `content/maths.mjs`, `reasoning.mjs`, `english.mjs` and `computer.mjs`. [`content/README.md`](content/README.md) describes the format. The build rejects a topic that has no analogy, a question whose options are not exactly four, an answer index outside 0–3, or unescaped HTML. Every push to `main` is validated and deployed to GitHub Pages by `.github/workflows/pages.yml`.
+All study material lives in `content/maths.mjs`, `reasoning.mjs`, `english.mjs` and `computer.mjs`. [`content/README.md`](content/README.md) describes the format. Marathi translations live in `content/mr/` (format in [`content/mr/README.md`](content/mr/README.md)), and interface text is in `content/i18n.mjs`. The build fails if a translation is missing or doesn't line up with its English topic. The build rejects a topic that has no analogy, a question whose options are not exactly four, an answer index outside 0–3, or unescaped HTML. Every push to `main` is validated and deployed to GitHub Pages by `.github/workflows/pages.yml`.
 
 If you find a wrong answer, please [open an issue](https://github.com/BaluRaut/mca-cet-prep/issues) and include the topic and question number.
 
