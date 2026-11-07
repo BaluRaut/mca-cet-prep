@@ -31,14 +31,17 @@ const importFresh = (file) => import(`${pathToFileURL(file).href}?t=${Date.now()
 
 // ---------- load ----------
 
+// A section's topics live in content/<id>.mjs, or split across content/<id>-1.mjs, <id>-2.mjs …
 for (const section of SECTIONS) {
-  const file = join(ROOT, 'content', `${section.id}.mjs`);
-  if (!existsSync(file)) {
+  const files = (await readdir(join(ROOT, 'content')))
+    .filter((f) => f === `${section.id}.mjs` || (f.startsWith(`${section.id}-`) && f.endsWith('.mjs')))
+    .sort();
+  section.topics = [];
+  if (!files.length) {
     warnings.push(`content/${section.id}.mjs does not exist yet`);
-    section.topics = [];
     continue;
   }
-  section.topics = (await importFresh(file)).default ?? [];
+  for (const f of files) section.topics.push(...((await importFresh(join(ROOT, 'content', f))).default ?? []));
 }
 
 // Marathi: every content/mr/<section-id>*.mjs exports { [topicId]: translation }.
