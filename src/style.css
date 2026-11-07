@@ -238,6 +238,21 @@ pre.code code { background: none; padding: 0; color: inherit; }
 .checklist li { margin-bottom: 0.5em; }
 .checklist li::marker { content: "☐ "; color: var(--accent); }
 
+/* day-by-day plan */
+.plan-link { font-size: 0.9rem; font-weight: 500; margin-left: 8px; white-space: nowrap; }
+.plan-box { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+.plan-box p { margin: 0; }
+.daily th { width: 7.5em; font-variant-numeric: tabular-nums; }
+.daily .chips { margin: 0; }
+.daily .tasks { margin: 6px 0 0; padding-left: 1.1em; font-size: 0.93rem; }
+.daily .tasks li { margin: 2px 0; }
+.daily tr.today { background: var(--good-bg); box-shadow: inset 4px 0 0 var(--good); }
+.daily tr.past th { color: var(--muted); }
+.day-done { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; font-size: 0.8rem; color: var(--muted); cursor: pointer; margin-top: 4px; }
+.day-done input { accent-color: var(--good); width: 16px; height: 16px; margin: 0; }
+.daily th:has(input:checked) { color: var(--good); }
+.daily th:has(input:checked) .day-done { color: var(--good); }
+
 /* mock: diagnostic, retry, pace */
 .mode.diag { border: 2px solid var(--good); }
 .mode.retry .count { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 999px; background: var(--bad-bg); color: var(--bad); font-size: 0.85rem; vertical-align: middle; }

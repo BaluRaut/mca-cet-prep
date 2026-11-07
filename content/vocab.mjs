@@ -19,7 +19,7 @@ export default [
     meaning: 'to officially put an end to a law, system or practice',
     syn: ['repeal', 'annul'],
     ant: ['establish', 'retain'],
-    mr: 'रद्द करणे, नष्ट करणे',
+    mr: 'रद्द करणे, बंद करणे',
     eg: 'The British government abolished the practice of sati in 1829.',
   },
   {
@@ -334,7 +334,7 @@ export default [
     meaning: 'the act of pressing something into a smaller space',
     syn: ['squeezing', 'contraction'],
     ant: ['expansion'],
-    mr: 'संकोचन, दाबणे',
+    mr: 'संकोचन, दाब',
     eg: 'Video compression lets a long film fit on a small memory card.',
   },
   {
@@ -352,7 +352,7 @@ export default [
     meaning: 'giving a lot of information clearly in few words',
     syn: ['brief', 'succinct'],
     ant: ['verbose', 'lengthy'],
-    mr: 'संक्षिप्त, थोडक्यात',
+    mr: 'संक्षिप्त, आटोपशीर',
     eg: 'Write a concise summary of the chapter in fifty words.',
   },
   {
@@ -613,7 +613,7 @@ export default [
     meaning: 'extreme shortage of food in a region',
     syn: ['starvation', 'hunger', 'scarcity'],
     ant: ['plenty', 'abundance'],
-    mr: 'उपासमार, अन्नटंचाई',
+    mr: 'दुष्काळ, अन्नटंचाई',
     eg: 'The Bengal famine of 1943 killed millions of people.',
   },
   {
@@ -982,7 +982,7 @@ export default [
     meaning: 'very generous or extravagant; rich and luxurious',
     syn: ['extravagant', 'luxurious', 'sumptuous'],
     ant: ['frugal', 'meager'],
-    mr: 'भरपूर, उधळ',
+    mr: 'भरपूर, उधळ्या',
     eg: 'The wedding reception was a lavish affair with five hundred guests.',
   },
   {
@@ -1468,7 +1468,7 @@ export default [
     meaning: 'very careful to do what is honest and correct',
     syn: ['conscientious', 'honest', 'meticulous'],
     ant: ['unscrupulous', 'careless'],
-    mr: 'सद्सद्विवेकी, काटेकोर',
+    mr: 'प्रामाणिक, काटेकोर',
     eg: 'The scrupulous accountant reported even the smallest error.',
   },
   {
@@ -1549,7 +1549,7 @@ export default [
     meaning: 'an amount left over after needs have been met',
     syn: ['excess', 'surfeit', 'glut'],
     ant: ['shortage', 'deficit'],
-    mr: 'अतिरिक्त, शिल्लक',
+    mr: 'शिल्लक, वाढावा',
     eg: 'Farmers sold the surplus from their wheat harvest at the government procurement centre.',
   },
   {

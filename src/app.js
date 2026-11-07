@@ -78,6 +78,65 @@
     paint();
   });
 
+  // Day-by-day plan: a start date in this browser; today's day number follows from it.
+  var PLAN = window.MCA_PLAN;
+  function localDate() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function planDay(start) {
+    if (!start) return 0;
+    var n = Math.floor((Date.now() - new Date(start + 'T00:00:00').getTime()) / 86400000) + 1;
+    return n < 1 ? 1 : n;
+  }
+  function fmt(str, vars) { return str.replace(/\{(\w+)\}/g, function (_, k) { return vars[k]; }); }
+  var planStart = store.get('mca:planStart', null);
+
+  var planBox = document.querySelector('[data-plan-box]');
+  if (planBox && PLAN) {
+    var PT = JSON.parse(planBox.dataset.i18n);
+    var dayDone = new Set(store.get('mca:days', []));
+    var paintPlan = function () {
+      planStart = store.get('mca:planStart', null);
+      var n = planDay(planStart);
+      planBox.innerHTML = '';
+      if (!planStart) {
+        var startBtn = document.createElement('button');
+        startBtn.className = 'button'; startBtn.type = 'button'; startBtn.textContent = PT.start;
+        startBtn.addEventListener('click', function () { store.set('mca:planStart', localDate()); paintPlan(); });
+        planBox.appendChild(startBtn);
+      } else {
+        var info = document.createElement('p');
+        var dateText = new Date(planStart + 'T00:00:00').toLocaleDateString(MR ? 'mr-IN' : undefined);
+        info.innerHTML = '<b>' + fmt(PT.startedOn, { date: dateText }) + '</b> · ' +
+          (n > PLAN.total ? PT.complete : fmt(PT.todayIs, { n: n }) + ' · <a href="#day-' + n + '">' + PT.goToday + '</a>');
+        planBox.appendChild(info);
+        var resetBtn = document.createElement('button');
+        resetBtn.className = 'button ghost'; resetBtn.type = 'button'; resetBtn.textContent = PT.reset;
+        resetBtn.addEventListener('click', function () {
+          if (!window.confirm(PT.confirmReset)) return;
+          store.set('mca:planStart', null); dayDone = new Set(); store.set('mca:days', []); paintPlan();
+        });
+        planBox.appendChild(resetBtn);
+      }
+      document.querySelectorAll('[data-day]').forEach(function (row) {
+        var d = Number(row.dataset.day);
+        row.classList.toggle('today', !!planStart && d === n);
+        row.classList.toggle('past', !!planStart && d < n);
+        var box = row.querySelector('[data-day-done]');
+        if (box) box.checked = dayDone.has(d);
+      });
+    };
+    document.addEventListener('change', function (event) {
+      var box = event.target.closest('[data-day-done]');
+      if (!box) return;
+      var d = Number(box.dataset.dayDone);
+      if (box.checked) dayDone.add(d); else dayDone.delete(d);
+      store.set('mca:days', Array.from(dayDone));
+    });
+    paintPlan();
+  }
+
   // Home page: "your progress" strip, shown only once there is something to show.
   var you = document.querySelector('[data-you]');
   if (you) {
@@ -86,7 +145,7 @@
     var diag = store.get('mca:diag', null);
     var topicIds = (you.dataset.youTopics || '').split(' ').filter(Boolean);
     var doneCount = topicIds.filter(function (id) { return done.has(id); }).length;
-    var anything = doneCount || mocks.length || diag || wrong.size;
+    var anything = doneCount || mocks.length || diag || wrong.size || planStart;
     if (anything) {
       you.hidden = false;
       you.querySelector('[data-you-done]').textContent = doneCount;
@@ -101,6 +160,16 @@
         });
         you.querySelector('[data-you-diag]').hidden = false;
         you.querySelector('[data-you-diag-text]').textContent = parts.join(' · ');
+      }
+      if (planStart && PLAN) {
+        var n = planDay(planStart);
+        var entry = PLAN.days[n - 1];
+        var L = MR ? 'mr' : 'en';
+        you.querySelector('[data-you-today]').hidden = false;
+        you.querySelector('[data-you-today-text]').innerHTML = !entry ? PLAN.labels.complete[L] :
+          '<a href="plan.html#day-' + n + '">' + PLAN.labels.day[L] + ' ' + n + '</a> ' +
+          entry.topics.map(function (t) { return '<a class="chip" style="--hue:' + t.hue + '" href="' + t.href + '" data-chip="' + t.id + '">' + t.title[L] + '</a>'; }).join(' ') +
+          entry.tasks.map(function (t) { return ' · ' + (t.href ? '<a href="' + t.href + '">' + t[L] + '</a>' : t[L]); }).join('');
       }
       var retry = you.querySelector('[data-you-retry]');
       if (retry && wrong.size) retry.hidden = false;

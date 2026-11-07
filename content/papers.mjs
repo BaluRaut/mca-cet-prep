@@ -38,7 +38,7 @@ export const PAPER_SOURCES = [
     access: { en: 'Free, login with mobile number or email', mr: 'मोफत, मोबाइल नंबर किंवा ईमेलने लॉगिन' },
     note: {
       en: 'The site calls these official papers; we have not been able to verify that. Older papers may follow a different pattern, so count the questions before you time yourself.',
-      mr: 'हे संकेतस्थळ यांना अधिकृत प्रश्नपत्रिका म्हणते; आम्ही याची खात्री करू शकलो नाही. सध्याच्या 100 प्रश्नांच्या पद्धतीआधीच्या असू शकतात, म्हणून वेळ लावण्याआधी प्रश्नांची संख्या मोजा.',
+      mr: 'हे संकेतस्थळ या प्रश्नपत्रिकांना अधिकृत म्हणते; आम्ही याची खात्री करू शकलो नाही. जुन्या प्रश्नपत्रिकांचे स्वरूप वेगळे असू शकते, म्हणून वेळ लावण्याआधी प्रश्नांची संख्या मोजा.',
     },
   },
 ];
@@ -51,7 +51,7 @@ export const OBSERVED_TYPES = [
   { topic: 'parts-of-speech-tenses', en: 'Choosing the right tense for “… for five years”', mr: '“… for five years” साठी योग्य काळ निवडणे' },
   { topic: 'sentence-correction', en: 'Improving part of a sentence', mr: 'वाक्याचा एखादा भाग सुधारणे' },
   { topic: 'analogy-classification', en: 'Odd one out among words, shapes and kinds of computers; putting words in logical order (city → state → country → world)', mr: 'शब्द, आकृत्या व संगणकांच्या प्रकारांमधील विसंगत घटक; शब्दांचा तार्किक क्रम (शहर → राज्य → देश → जग)' },
-  { topic: 'letter-series', en: 'Finding a letter by its position from the end of the alphabet', mr: 'वर्णमालेच्या शेवटून स्थानावरून अक्षर शोधणे' },
+  { topic: 'letter-series', en: 'Finding a letter by its position from the end of the alphabet', mr: 'वर्णमालेत शेवटून दिलेल्या स्थानावरचे अक्षर शोधणे' },
   { topic: 'number-series', en: 'Next term of a series, and the wrong number in a series', mr: 'मालिकेतील पुढचे पद आणि मालिकेतील चुकीची संख्या' },
   { topic: 'coding-decoding', en: 'Coding by rearranging the letters of a word', mr: 'शब्दातील अक्षरांची जागा बदलून सांकेतिक भाषा' },
   { topic: 'permutations-combinations', en: 'Forming numbers from given digits with a divisibility rule; the dictionary rank of a word', mr: 'दिलेल्या अंकांपासून विभाज्यतेच्या अटीसह संख्या बनवणे; शब्दकोशातील शब्दाचा क्रमांक' },

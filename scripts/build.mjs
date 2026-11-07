@@ -243,6 +243,7 @@ function page({ lang, file, title, description, hue = 250, body, scripts = [] })
   const up = lang === 'en' ? '' : '../';
   const nav = [
     ['index.html', T.nav.home],
+    ['plan.html', T.nav.plan],
     ...SECTIONS.map((s) => [`${s.id}.html`, sec(s, lang).short]),
     ['words.html', T.nav.words],
     ['revision.html', T.nav.revision],
@@ -284,8 +285,9 @@ ${body}
   <p>${T.footSource(EXAM.brochureUrl, EXAM.brochureYear, EXAM.officialSite)}</p>
   <p>${T.footRepo(REPO_URL)}</p>
 </footer>
+${scripts.filter((s) => /-data\.js$|\/bank\.js$/.test(s)).map((s) => `<script src="${up}${s}"></script>`).join('\n')}
 <script src="${up}assets/app.js"></script>
-${scripts.map((s) => `<script src="${up}${s}"></script>`).join('\n')}
+${scripts.filter((s) => !/-data\.js$|\/bank\.js$/.test(s)).map((s) => `<script src="${up}${s}"></script>`).join('\n')}
 </body>
 </html>
 `;
@@ -445,7 +447,7 @@ const HOME = {
     description: 'MAH-MCA-CET ची मोफत तयारी मराठीत: गणित, तर्कशक्ती, इंग्रजी आणि संगणकाचा प्रत्येक विषय रोजच्या जीवनातील उपमेने समजावलेला, सराव प्रश्न आणि वेळेसह सराव परीक्षा.',
     eyebrow: 'MAH-MCA-CET · महाराष्ट्र MCA प्रवेश परीक्षा',
     h1: 'प्रत्येक विषय, रोजच्या जीवनातील उपमेने',
-    lede: (n) => `MCA सामाईक प्रवेश परीक्षेची मोफत तयारी, मराठीत. सर्व ${n} विषयांची सुरुवात रोजच्या आयुष्यातील एका चित्राने होते (क्रिकेटचा चेंडू, लोकल ट्रेन, किराणा दुकान), त्यामुळे संकल्पना पक्की बसते. नंतर सूत्रे, सोडवलेले उदाहरण, नेहमीच्या चुका आणि सराव प्रश्न. शेवटी पूर्ण वेळेची सराव परीक्षा. <b>परीक्षा फक्त इंग्रजीत असते</b>, म्हणून प्रश्न इंग्रजीतच ठेवले आहेत आणि प्रत्येक प्रश्नाखाली त्याचा मराठी अर्थ दिला आहे.`,
+    lede: (n) => `MCA सामाईक प्रवेश परीक्षेची मोफत तयारी, मराठीत. सर्व ${n} विषयांची सुरुवात रोजच्या जीवनातील एका चित्राने होते (क्रिकेटचा चेंडू, लोकल ट्रेन, किराणा दुकान), त्यामुळे संकल्पना पक्की बसते. नंतर सूत्रे, सोडवलेले उदाहरण, नेहमीच्या चुका आणि सराव प्रश्न. शेवटी पूर्ण वेळेची सराव परीक्षा. <b>परीक्षा फक्त इंग्रजीत असते</b>, म्हणून प्रश्न इंग्रजीतच ठेवले आहेत आणि प्रत्येक प्रश्नाखाली त्याचा मराठी अर्थ दिला आहे.`,
     stats: ['प्रश्न', 'गुण', 'मिनिटे', 'निगेटिव्ह मार्किंग'],
     sections: 'चार विभाग',
     card: (q, m, min) => `${q} प्रश्न · ${m} गुण · ~${min} मिनिटे`,
@@ -465,7 +467,7 @@ const HOME = {
     strategySteps: [
       ['दोन फेऱ्या.', 'पहिली फेरी: एका मिनिटात सुटणारे सगळे प्रश्न सोडवा, बाकीच्यांवर खूण करा. दुसरी फेरी: खूण केलेल्या प्रश्नांकडे परत या.'],
       ['एकही प्रश्न सोडू नका.', 'निगेटिव्ह मार्किंग नसल्यामुळे रिकामा प्रश्न म्हणजे खात्रीचा शून्य. माहितीपुस्तिका <i>अंदाधुंद</i> अंदाज न लावण्याचा सल्ला देते, म्हणून आधी नक्की चुकीचे पर्याय बाद करा, मग निवडा.'],
-      ['इंग्रजी व संगणकात वेळ वाचवा.', 'हे विभाग मुख्यतः आठवणीवर आधारित आहेत: सुमारे 12 व 10 मिनिटे ठेवा, म्हणजे गणितासाठी ~35 आणि तर्कशक्तीसाठी ~30 मिनिटे उरतात.'],
+      ['इंग्रजी व संगणकात वेळ वाचवा.', 'हे विभाग मुख्यतः पाठांतरावर आधारित आहेत: सुमारे 12 व 10 मिनिटे ठेवा, म्हणजे गणितासाठी ~35 आणि तर्कशक्तीसाठी ~30 मिनिटे उरतात.'],
       ['तर्कशक्तीसाठी कागद वापरा.', 'वंशवृक्ष, दिशांचे बाण, बैठकीचे वर्तुळ काढा. डोक्यातच सोडवल्यामुळे तर्कशक्तीचे गुण जातात.'],
     ],
     plan: '8 आठवड्यांचा अभ्यास आराखडा',
@@ -490,6 +492,8 @@ const HOME_EXTRA = {
     youDiag: 'Diagnostic',
     retake: 'retake',
     retry: 'Retry my mistakes',
+    dailyLink: 'Day-by-day plan →',
+    todayLabel: 'Today',
     examDay: 'Exam-day checklist',
     examDayNote: 'From the official brochure. Read it the night before.',
     checklist: [
@@ -506,19 +510,21 @@ const HOME_EXTRA = {
     diag: '20 प्रश्नांची प्रारंभिक चाचणी द्या',
     diagHint: '18 मिनिटे. कोणता विभाग आधी अभ्यासायचा ते सांगते.',
     you: 'तुमची प्रगती',
-    youDone: (n) => `${n} पैकी विषय पूर्ण`,
+    youDone: (n) => `${n} विषयांपैकी पूर्ण`,
     youMock: 'शेवटच्या परीक्षेचे गुण',
     youWrong: 'पुन्हा सोडवायचे प्रश्न',
     youDiag: 'प्रारंभिक चाचणी',
     retake: 'पुन्हा द्या',
     retry: 'माझ्या चुका पुन्हा सोडवा',
+    dailyLink: 'दिवसागणिक आराखडा →',
+    todayLabel: 'आज',
     examDay: 'परीक्षेच्या दिवसाची यादी',
     examDayNote: 'अधिकृत माहितीपुस्तिकेतून. आदल्या रात्री वाचा.',
     checklist: [
       'हॉल तिकीट, प्रिंट केलेले, अलीकडचा फोटो चिकटवलेले. उमेदवार लॉगिनमधून डाउनलोड करा; परीक्षेची तारीख, हजर राहण्याची वेळ आणि केंद्र त्यावर असते.',
-      'हॉल तिकिटावरील नावाशी जुळणारे एक मूळ फोटो ओळखपत्र: PAN कार्ड, पासपोर्ट, कायमचा ड्रायव्हिंग लायसन्स, मतदार ओळखपत्र, फोटोसह आधार किंवा ई-आधार, फोटोसह बँक पासबुक, किंवा वैध कॉलेज ओळखपत्र. रेशन कार्ड किंवा लर्निंग लायसन्स चालत नाही.',
+      'हॉल तिकिटावरील नावाशी जुळणारे एक मूळ फोटो ओळखपत्र: PAN कार्ड, पासपोर्ट, कायमस्वरूपी ड्रायव्हिंग लायसन्स, मतदार ओळखपत्र, फोटोसह आधार किंवा ई-आधार, फोटोसह बँक पासबुक, किंवा वैध कॉलेज ओळखपत्र. रेशन कार्ड किंवा लर्निंग लायसन्स चालत नाही.',
       'हॉल तिकिटावरील हजर राहण्याच्या वेळेआधी केंद्रावर पोहोचा. उशिरा आलेल्यांना प्रवेश मिळत नाही. पडताळणी, लॉगिन आणि सूचनांसाठी एकूण सुमारे 140 मिनिटे केंद्रावर लागतील असे गृहीत धरा.',
-      'परीक्षा हॉलमध्ये मोबाइल, स्मार्ट वॉच, हेडफोन किंवा कोणतेही इलेक्ट्रॉनिक उपकरण नाही. जवळ सापडले तर अपात्र ठरवले जाते. घरी किंवा बाहेर कोणाकडे ठेवा.',
+      'परीक्षा हॉलमध्ये मोबाइल, स्मार्ट वॉच, हेडफोन किंवा कोणतेही इलेक्ट्रॉनिक उपकरण नेऊ नका. जवळ सापडले तर अपात्र ठरवले जाते. ती घरी किंवा बाहेर कोणाकडे ठेवा.',
       'परीक्षा संगणकावर होते: तुम्ही क्लिक केलेला पर्याय हेच तुमचे उत्तर, आणि सबमिट करण्याआधी ते बदलता येते. निगेटिव्ह मार्किंग नाही, म्हणून प्रत्येक प्रश्न सोडवा.',
       'आदल्या रात्री पुरेशी झोप घ्या आणि निघण्याआधी जेवा. उजळणी पत्रक एकदा वाचा; परीक्षेच्या दिवशी नवीन विषय सुरू करू नका.',
     ],
@@ -564,7 +570,7 @@ function renderHome(lang) {
   <h1>${H.h1}</h1>
   <p class="lede">${H.lede(topicCount)}</p>
   <div class="stats">${stats}</div>
-  <div class="start-here"><span class="eyebrow">${X.startHere}</span> <a class="button" href="mock.html#diag">${X.diag}</a> <span class="hint">${X.diagHint}</span></div>
+  <div class="start-here"><span class="eyebrow">${X.startHere}</span> <a class="button" href="mock.html#diag">${X.diag}</a> <span class="hint">${X.diagHint}</span> <a class="button ghost" href="plan.html">${X.dailyLink}</a></div>
 </section>
 
 <section class="you" data-you hidden data-you-topics="${allTopicIds}" data-you-labels="${esc(JSON.stringify(labels))}">
@@ -575,6 +581,7 @@ function renderHome(lang) {
     <div class="stat"><b data-you-wrong>0</b><span>${X.youWrong}</span></div>
   </div>
   <p data-you-diag hidden><b>${X.youDiag}:</b> <span data-you-diag-text></span> · <a href="mock.html#diag">${X.retake}</a></p>
+  <p data-you-today hidden><b>${X.todayLabel}:</b> <span data-you-today-text></span></p>
   <p><a class="button ghost" href="mock.html#retry" data-you-retry hidden>${X.retry}</a></p>
 </section>
 
@@ -597,12 +604,12 @@ function renderHome(lang) {
 </section>
 
 <section>
-  <h2>${H.plan}</h2>
+  <h2>${H.plan} <a class="plan-link" href="plan.html">${X.dailyLink}</a></h2>
   <p class="muted">${H.planNote}</p>
   <div class="table-wrap"><table class="plan">${plan}</table></div>
 </section>
 
-<section>
+<section id="exam-day">
   <h2>${X.examDay}</h2>
   <p class="muted">${X.examDayNote}</p>
   <ul class="checklist">${X.checklist.map((c) => `<li>${c}</li>`).join('')}</ul>
@@ -613,7 +620,7 @@ function renderHome(lang) {
   <p>${H.ctaText}</p>
   <p><a class="button" href="mock.html">${H.ctaMock}</a> <a class="button ghost" href="revision.html">${H.ctaRevision}</a></p>
 </section>`;
-  return page({ lang, file: 'index.html', title: H.title, description: H.description, body });
+  return page({ lang, file: 'index.html', title: H.title, description: H.description, body, scripts: ['assets/plan-data.js'] });
 }
 
 // ---------- revision + mock ----------
@@ -673,10 +680,10 @@ const SPEED = {
   },
   mr: {
     title: 'झटपट गणित: हे पाठ असलेच पाहिजे',
-    note: 'खालील प्रत्येक किंमत हॉलमध्ये मोजत बसायची नसते. या संख्या टाइप केलेल्या नाहीत, build ने तयार केलेल्या आहेत, त्यामुळे अचूक आहेत.',
+    note: 'खालील प्रत्येक किंमत तोंडपाठ असावी; परीक्षा हॉलमध्ये ती मोजत बसायची नाही. या संख्या टाइप केलेल्या नाहीत, build ने तयार केलेल्या आहेत, त्यामुळे अचूक आहेत.',
     squares: 'वर्ग', cubes: 'घन', pow2: '2 चे घात', frac: 'अपूर्णांक ↔ टक्केवारी', div: 'विभाज्यतेचे नियम', consts: 'स्थिरांक व लॉग', trig: 'त्रिकोणमितीय किंमती',
-    divHead: ['ने', 'नियम'],
-    divRules: [['2', 'शेवटचा अंक सम'], ['3', 'अंकांची बेरीज 3 ने भाग जाणारी'], ['4', 'शेवटचे दोन अंक 4 ने भाग जाणारे'], ['5', 'शेवटी 0 किंवा 5'], ['6', '2 आणि 3 दोन्हींनी भाग जाणारी'], ['8', 'शेवटचे तीन अंक 8 ने भाग जाणारे'], ['9', 'अंकांची बेरीज 9 ने भाग जाणारी'], ['11', '(विषम स्थानांच्या अंकांची बेरीज) − (सम स्थानांच्या अंकांची बेरीज) 0 किंवा 11 चा पट']],
+    divHead: ['भाजक', 'नियम'],
+    divRules: [['2', 'शेवटचा अंक सम'], ['3', 'अंकांची बेरीज 3 ने भाग जाणारी'], ['4', 'शेवटचे दोन अंक 4 ने भाग जाणारे'], ['5', 'शेवटी 0 किंवा 5'], ['6', '2 आणि 3 दोन्हींनी भाग जाणारी'], ['8', 'शेवटचे तीन अंक 8 ने भाग जाणारे'], ['9', 'अंकांची बेरीज 9 ने भाग जाणारी'], ['11', '(विषम स्थानांच्या अंकांची बेरीज) − (सम स्थानांच्या अंकांची बेरीज) 0 किंवा 11 च्या पटीत']],
   },
 };
 
@@ -771,9 +778,9 @@ const PAPERS = {
     description: 'MAH-MCA-CET च्या मागील वर्षांच्या प्रश्नपत्रिका कुठे मिळतात, प्रत्येक स्रोतात नेमके काय आहे, आणि त्यांचा सराव कसा करायचा.',
     eyebrow: 'संदर्भ',
     h1: 'मागील वर्षांच्या प्रश्नपत्रिका',
-    lede: 'आधी खरे उत्तर: राज्य CET कक्ष MCA CET च्या प्रश्नपत्रिका आपल्या संकेतस्थळावर प्रसिद्ध करत नाही. उपलब्ध आहे ते म्हणजे उमेदवार लॉगिनमधील तुमची स्वतःची प्रश्नपत्रिका, आणि इतर संकेतस्थळांनी गोळा केलेल्या प्रश्नपत्रिका. प्रत्येक स्रोतात नेमके काय आहे, मागील प्रश्नपत्रिकांमध्ये कोणत्या प्रकारचे प्रश्न येतात, आणि त्यांचा या संकेतस्थळासोबत कसा वापर करायचा, ते इथे दिले आहे.',
+    lede: 'आधी खरे उत्तर: राज्य CET कक्ष MCA CET च्या प्रश्नपत्रिका स्वतःच्या संकेतस्थळावर प्रसिद्ध करत नाही. उपलब्ध आहे ते म्हणजे उमेदवार लॉगिनमधील तुमची स्वतःची प्रश्नपत्रिका, आणि इतर संकेतस्थळांनी गोळा केलेल्या प्रश्नपत्रिका. प्रत्येक स्रोतात नेमके काय आहे, मागील प्रश्नपत्रिकांमध्ये कोणत्या प्रकारचे प्रश्न येतात, आणि त्यांचा या संकेतस्थळासोबत कसा वापर करायचा, ते इथे दिले आहे.',
     sources: 'कुठे मिळतील',
-    head: ['स्रोत', 'वर्षे', 'प्रकार', 'प्रवेश'],
+    head: ['स्रोत', 'वर्षे', 'प्रकार', 'उपलब्धता'],
     kinds: { official: 'अधिकृत', memory: 'आठवणीवर आधारित (अनधिकृत)', unverified: 'अनधिकृत प्रत, खात्री केलेली नाही' },
     open: 'उघडा',
     caution: 'अनधिकृत प्रश्नपत्रिकांमध्ये चुकीची उत्तरे किंवा अपूर्ण प्रश्न असू शकतात. उत्तरसूची तुमच्या उकलीशी जुळत नसेल, तर तुमच्या उकलीवर विश्वास ठेवा आणि इथे तो विषय तपासा.',
@@ -849,10 +856,10 @@ const VOCAB_UI = {
     description: 'परीक्षेत वारंवार येणारे 200 इंग्रजी शब्द: अर्थ, समानार्थी, विरुद्धार्थी, मराठी अर्थ, flashcards आणि समानार्थी शब्दांची प्रश्नमंजुषा.',
     eyebrow: 'शब्दसंग्रह',
     h1: (n) => `इंग्रजी विभागासाठी ${n} शब्द`,
-    lede: 'अभ्यास आराखडा म्हणतो रोज दहा नवे शब्द. ते हे: वीस दिवस, रोज दहा, प्रत्येकाचा अर्थ, समानार्थी, विरुद्धार्थी, मराठी अर्थ आणि एक वाक्य. आधी flashcards ने सराव करा, मग प्रश्नमंजुषा द्या; चुकलेले शब्द “माहीत नव्हते” मध्ये जमा होतात, म्हणजे फक्त तेच पुन्हा घोटता येतात.',
+    lede: 'अभ्यास आराखड्यात रोज दहा नवे शब्द सांगितले आहेत. ते इथे आहेत: वीस दिवस, रोज दहा; प्रत्येकाचा अर्थ, समानार्थी, विरुद्धार्थी, मराठी अर्थ आणि एक वाक्य. आधी flashcards ने सराव करा, मग प्रश्नमंजुषा द्या; चुकलेले शब्द “माहीत नव्हते” मध्ये जमा होतात, म्हणजे फक्त त्यांचाच पुन्हा सराव करता येतो.',
     dayNav: 'दिवस निवडा',
     day: 'दिवस',
-    i18n: { scope: 'शब्द निवडा', all: 'सर्व शब्द', unknown: 'माहीत नव्हते', day: 'दिवस', flashcards: 'Flashcards', quiz: 'प्रश्नमंजुषा (10 प्रश्न)', setupNote: 'Flashcards: शब्द पाहा, अर्थ आठवा, मग तपासा. प्रश्नमंजुषा: यादीतून तयार होणारे परीक्षेसारखे समानार्थी/विरुद्धार्थी प्रश्न.', empty: 'या संचात अजून शब्द नाहीत.', show: 'अर्थ दाखवा', knew: 'माहीत होते', didnt: 'माहीत नव्हते', stop: 'थांबा', backToSetup: 'मागे', cardsDone: '{n} कार्ड झाली, {m} “माहीत नव्हते” म्हणून खूण केली.', quizDone: 'गुण: {r} / {n}', missed: 'पुन्हा पाहायचे शब्द:', quizAgain: 'आणखी 10', synOf: 'समानार्थी शब्द:', antOf: 'विरुद्धार्थी शब्द:', next: 'पुढे →', syn: 'समानार्थी', ant: 'विरुद्धार्थी', markUnknown: 'माहीत नव्हते', marked: '✓ खूण केली' },
+    i18n: { scope: 'शब्द निवडा', all: 'सर्व शब्द', unknown: 'माहीत नव्हते', day: 'दिवस', flashcards: 'Flashcards', quiz: 'प्रश्नमंजुषा (10 प्रश्न)', setupNote: 'Flashcards: शब्द पाहा, अर्थ आठवा, मग तपासा. प्रश्नमंजुषा: यादीतून तयार होणारे परीक्षेसारखे समानार्थी/विरुद्धार्थी प्रश्न.', empty: 'या संचात अजून शब्द नाहीत.', show: 'अर्थ दाखवा', knew: 'माहीत होते', didnt: 'माहीत नव्हते', stop: 'थांबवा', backToSetup: 'मागे', cardsDone: '{n} कार्ड पूर्ण, त्यातील {m} “माहीत नव्हते”.', quizDone: 'गुण: {r} / {n}', missed: 'पुन्हा पाहायचे शब्द:', quizAgain: 'आणखी 10', synOf: 'समानार्थी शब्द निवडा:', antOf: 'विरुद्धार्थी शब्द निवडा:', next: 'पुढे →', syn: 'समानार्थी', ant: 'विरुद्धार्थी', markUnknown: 'माहीत नव्हते', marked: '✓ खूण केली' },
   },
 };
 
@@ -885,6 +892,121 @@ function renderVocab(lang) {
 </section>
 ${dayHtml}`;
   return page({ lang, file: 'words.html', title: U.title, description: U.description, body, scripts: ['assets/vocab-data.js', 'assets/vocab.js'] });
+}
+
+// ---------- day-by-day plan ----------
+// Generated from the weekly plan: each week's topics spread over days 1–6, day 7 is catch-up
+// plus a drill or a full mock; ten words a day for the first twenty days, then word quizzes;
+// week 8 is mocks and revision. The build cannot know the student's weakest section, so the
+// drill task points at the mock page where the diagnostic result is shown.
+const TASK = {
+  diag: { en: 'Take the 20-question diagnostic', mr: '20 प्रश्नांची प्रारंभिक चाचणी द्या', href: 'mock.html#diag' },
+  words: (d) => ({ en: `Words: Day ${d} (10 new words)`, mr: `शब्द: दिवस ${d} (10 नवे शब्द)`, href: `words.html#day-${d}` }),
+  wordsQuiz: { en: 'Words: a 10-question quiz on all words', mr: 'शब्द: सर्व शब्दांवर 10 प्रश्नांची प्रश्नमंजुषा', href: 'words.html' },
+  wordsReview: { en: 'Words: flashcards of the words you didn’t know', mr: 'शब्द: माहीत नव्हते त्या शब्दांची flashcards', href: 'words.html' },
+  drill: { en: 'Drill: 10 questions from your weakest section', mr: 'झटपट सराव: सर्वात कमकुवत विभागाचे 10 प्रश्न', href: 'mock.html' },
+  retry: { en: 'Retry my mistakes', mr: 'माझ्या चुका पुन्हा सोडवा', href: 'mock.html#retry' },
+  catchUp: { en: 'Catch-up: finish any topic left over from this week', mr: 'राहिलेले: या आठवड्यातील उरलेले विषय पूर्ण करा', href: null },
+  mock: { en: 'Full mock test (90 min)', mr: 'पूर्ण सराव परीक्षा (90 मिनिटे)', href: 'mock.html' },
+  revisit: { en: 'Re-open every topic you got wrong in the last mock and redo its practice', mr: 'शेवटच्या सराव परीक्षेत चुकलेला प्रत्येक विषय पुन्हा उघडा आणि त्याचा सराव पुन्हा सोडवा', href: null },
+  revision: { en: 'Read the revision sheet end to end', mr: 'उजळणी पत्रक सुरुवातीपासून शेवटपर्यंत वाचा', href: 'revision.html' },
+  speed: { en: 'Speed maths from the revision sheet: squares, cubes, fraction–percent', mr: 'उजळणी पत्रकातील झटपट गणित: वर्ग, घन, अपूर्णांक–टक्केवारी', href: 'revision.html' },
+  papers: { en: 'Read the previous-papers guide', mr: 'मागील प्रश्नपत्रिकांचे मार्गदर्शन वाचा', href: 'papers.html' },
+  examDay: { en: 'Go through the exam-day checklist, pack hall ticket and ID, and rest', mr: 'परीक्षेच्या दिवसाची यादी तपासा, हॉल तिकीट व ओळखपत्र तयार ठेवा आणि विश्रांती घ्या', href: 'index.html#exam-day' },
+};
+const FINAL_WEEK = [
+  [TASK.revision, TASK.retry],
+  [TASK.mock],
+  [TASK.revisit, TASK.wordsReview],
+  [TASK.mock],
+  [TASK.revisit, TASK.speed, TASK.wordsQuiz],
+  [TASK.mock, TASK.retry],
+  [TASK.revision, TASK.examDay],
+];
+const DAILY = [];
+STUDY_PLAN.forEach((week, wi) => {
+  const ids = (week.topics ?? []).filter(topicById);
+  const perDay = Array.from({ length: 6 }, () => []);
+  ids.forEach((id, i) => perDay[Math.floor((i * 6) / ids.length)].push(id));
+  for (let d = 1; d <= 7; d++) {
+    const day = wi * 7 + d;
+    const tasks = [];
+    if (wi === STUDY_PLAN.length - 1) tasks.push(...FINAL_WEEK[d - 1]);
+    else {
+      if (day === 1) tasks.push(TASK.diag);
+      if (day === 22) tasks.push(TASK.papers);
+      if (d === 7) tasks.push(TASK.catchUp, [4, 6, 7].includes(wi + 1) ? TASK.mock : TASK.drill, TASK.retry);
+      if (day <= 20) tasks.push(TASK.words(day));
+      else tasks.push(day % 2 ? TASK.wordsQuiz : TASK.wordsReview);
+    }
+    DAILY.push({ day, week: wi + 1, topics: d <= 6 ? perDay[d - 1] : [], tasks });
+  }
+});
+
+const PLAN_UI = {
+  en: {
+    title: 'Day-by-day plan · MCA CET Prep',
+    description: '56-day MAH-MCA-CET study plan: one or two topics a day, ten words a day, drills, retries and mock tests, with today highlighted.',
+    eyebrow: '8 weeks · 56 days',
+    h1: 'Day-by-day plan',
+    lede: 'The weekly plan broken into 56 days: one or two topics a day plus a small daily habit. Press “Start the plan today” and this page highlights today’s row; the home page shows today’s tasks too. Behind by a day? Do today’s row, not yesterday’s: every week ends with a catch-up day.',
+    week: 'Week', day: 'Day',
+    i18n: { start: 'Start the plan today', startedOn: 'Started on {date}', todayIs: 'Today is Day {n}', complete: 'All 56 days are over. Good luck!', goToday: 'Go to today', reset: 'Reset', confirmReset: 'Clear the start date and the day ticks?', done: 'Day done' },
+  },
+  mr: {
+    title: 'दिवसागणिक आराखडा · MCA CET तयारी',
+    description: '56 दिवसांचा MAH-MCA-CET अभ्यास आराखडा: रोज एक-दोन विषय, रोज दहा शब्द, झटपट सराव, चुकांचा सराव आणि सराव परीक्षा, आजचा दिवस ठळक.',
+    eyebrow: '8 आठवडे · 56 दिवस',
+    h1: 'दिवसागणिक आराखडा',
+    lede: 'आठवड्याचा आराखडा 56 दिवसांत विभागलेला: रोज एक-दोन विषय आणि एक छोटी रोजची सवय. “आजपासून आराखडा सुरू करा” दाबा, म्हणजे हे पान आजची ओळ ठळक दाखवते; मुख्यपृष्ठावरही आजची कामे दिसतात. एक दिवस मागे पडलात? कालची नव्हे, आजची ओळ पूर्ण करा: प्रत्येक आठवड्याच्या शेवटी राहिलेले भरून काढण्याचा दिवस आहे.',
+    week: 'आठवडा', day: 'दिवस',
+    i18n: { start: 'आजपासून आराखडा सुरू करा', startedOn: '{date} पासून सुरू', todayIs: 'आज दिवस {n}', complete: 'सर्व 56 दिवस पूर्ण. शुभेच्छा!', goToday: 'आजच्या दिवसाकडे जा', reset: 'पुन्हा सुरू करा', confirmReset: 'सुरुवातीची तारीख आणि दिवसांच्या खुणा पुसायच्या?', done: 'दिवस पूर्ण' },
+  },
+};
+
+function renderPlan(lang) {
+  const P = PLAN_UI[lang];
+  const weeks = STUDY_PLAN.map((w, wi) => {
+    const focus = lang === 'mr' ? PLAN_MR[wi].focus : w.focus;
+    const rows = DAILY.filter((x) => x.week === wi + 1).map((x) => {
+      const chips = x.topics.map((id) => {
+        const s = sectionOf(id);
+        return `<a class="chip" style="--hue:${s.hue}" href="${s.id}.html#${id}" data-chip="${id}">${view(topicById(id), lang).title}</a>`;
+      }).join(' ');
+      const tasks = x.tasks.map((t) => `<li>${t.href ? `<a href="${t.href}">${t[lang]}</a>` : t[lang]}</li>`).join('');
+      return `<tr data-day="${x.day}" id="day-${x.day}">
+      <th scope="row">${P.day} ${x.day}<br><label class="day-done"><input type="checkbox" data-day-done="${x.day}" aria-label="${P.i18n.done}"> <span>${P.i18n.done}</span></label></th>
+      <td>${chips ? `<p class="chips">${chips}</p>` : ''}<ul class="tasks">${tasks}</ul></td>
+    </tr>`;
+    }).join('');
+    return `<section class="rev-section">
+  <h2>${P.week} ${wi + 1} <span class="muted">· ${focus}</span></h2>
+  <div class="table-wrap"><table class="plan daily"><tbody>${rows}</tbody></table></div>
+</section>`;
+  }).join('\n');
+  const body = `<section class="hero">
+  <p class="eyebrow">${P.eyebrow}</p>
+  <h1>${P.h1}</h1>
+  <p class="lede">${P.lede}</p>
+  <div class="plan-box" data-plan-box data-i18n="${esc(JSON.stringify(P.i18n))}"></div>
+</section>
+${weeks}`;
+  return page({ lang, file: 'plan.html', title: P.title, description: P.description, body, scripts: ['assets/plan-data.js'] });
+}
+
+function renderPlanData() {
+  const days = DAILY.map((x) => ({
+    day: x.day,
+    week: x.week,
+    topics: x.topics.map((id) => {
+      const s = sectionOf(id);
+      const t = topicById(id);
+      return { id, href: `${s.id}.html#${id}`, hue: s.hue, title: { en: t.title, mr: MR[id]?.title ?? t.title } };
+    }),
+    tasks: x.tasks.map((t) => ({ en: t.en, mr: t.mr, href: t.href })),
+  }));
+  const labels = { day: { en: 'Day', mr: 'दिवस' }, complete: { en: PLAN_UI.en.i18n.complete, mr: PLAN_UI.mr.i18n.complete } };
+  return `window.MCA_PLAN = ${JSON.stringify({ total: days.length, labels, days })};\n`;
 }
 
 function renderBank() {
@@ -927,17 +1049,19 @@ async function emit(rel, content) {
 for (const f of await readdir(join(ROOT, 'src'))) outputs.push(`assets/${f}`);
 await emit('assets/bank.js', renderBank());
 await emit('assets/vocab-data.js', `window.MCA_VOCAB = ${JSON.stringify(VOCAB ?? [])};\n`);
+await emit('assets/plan-data.js', renderPlanData());
 await writeFile(join(OUT, '.nojekyll'), '');
 let pages = 0;
 for (const lang of ['en', 'mr']) {
   const dir = lang === 'en' ? '' : 'mr/';
   await emit(`${dir}index.html`, renderHome(lang));
   for (const s of SECTIONS) await emit(`${dir}${s.id}.html`, renderSection(s, lang));
+  await emit(`${dir}plan.html`, renderPlan(lang));
   await emit(`${dir}words.html`, renderVocab(lang));
   await emit(`${dir}revision.html`, renderRevision(lang));
   await emit(`${dir}mock.html`, renderMock(lang));
   await emit(`${dir}papers.html`, renderPapers(lang));
-  pages += 5 + SECTIONS.length;
+  pages += 6 + SECTIONS.length;
 }
 
 // Offline support: a service worker that precaches every page and asset. The cache name
