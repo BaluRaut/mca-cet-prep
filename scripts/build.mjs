@@ -421,7 +421,7 @@ function renderHome(lang) {
   const X = HOME_EXTRA[lang];
   const allTopicIds = SECTIONS.flatMap((s) => s.topics.map((t) => t.id)).join(' ');
   const labels = Object.fromEntries(SECTIONS.map((s) => [s.id, sec(s, lang).short]));
-  const stats = [EXAM.questions, EXAM.marks, EXAM.minutes, '0']
+  const stats = [EXAM.questions, EXAM.marks, EXAM.minutes, EXAM.negativeMarks ? `−${EXAM.negativeMarks}` : '0']
     .map((v, i) => `<div class="stat"><b>${v}</b><span>${H.stats[i]}</span></div>`).join('');
 
   const cards = SECTIONS.map((raw) => {
