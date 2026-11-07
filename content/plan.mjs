@@ -29,7 +29,7 @@ export const STUDY_PLAN = [
   },
   {
     focus: 'Remaining topics: DE, sets, mensuration, non-verbal, C and OS',
-    topics: ['differential-equations', 'sets-relations-functions', 'mensuration-2d', 'mensuration-3d', 'venn-data-sufficiency', 'non-verbal', 'c-control-flow', 'c-arrays-pointers-functions', 'os-basics', 'fill-in-the-blanks', 'para-jumbles'],
+    topics: ['differential-equations', 'sets-relations-functions', 'mensuration-2d', 'mensuration-3d', 'venn-data-sufficiency', 'non-verbal', 'c-control-flow', 'c-arrays-pointers-functions', 'os-basics', 'computer-awareness', 'fill-in-the-blanks', 'para-jumbles'],
   },
   {
     focus: 'Mock tests and revision',

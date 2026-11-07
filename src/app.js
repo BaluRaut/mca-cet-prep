@@ -1,4 +1,5 @@
-// Shared page behaviour: theme toggle, practice MCQs, "mark as done" progress.
+// Shared page behaviour: theme toggle, practice MCQs, "mark as done" progress,
+// the mistake bank, the "your progress" strip on the home page, and offline caching.
 (function () {
   'use strict';
 
@@ -12,6 +13,16 @@
     },
   };
   window.MCA_STORE = store;
+
+  // Questions answered wrongly anywhere on the site, by bank id ("<topic>-<n>").
+  // A correct answer anywhere removes the question again.
+  var wrong = new Set(store.get('mca:wrong', []));
+  window.MCA_WRONG = {
+    add: function (id) { wrong.add(id); store.set('mca:wrong', Array.from(wrong)); },
+    remove: function (id) { if (wrong.delete(id)) store.set('mca:wrong', Array.from(wrong)); },
+    has: function (id) { return wrong.has(id); },
+    list: function () { return Array.from(wrong); },
+  };
 
   // Theme: follows the system until the user picks one.
   var themeBtn = document.querySelector('.theme');
@@ -40,8 +51,9 @@
     });
     var why = mcq.querySelector('.why');
     why.hidden = false;
-    var verdict = picked === answer ? (MR ? '✓ बरोबर. ' : '✓ Correct. ') : (MR ? '✗ चुकले. ' : '✗ Not quite. ');
-    why.insertAdjacentText('afterbegin', verdict);
+    var right = picked === answer;
+    why.insertAdjacentText('afterbegin', right ? (MR ? '✓ बरोबर. ' : '✓ Correct. ') : (MR ? '✗ चुकले. ' : '✗ Not quite. '));
+    if (mcq.dataset.qid) { if (right) window.MCA_WRONG.remove(mcq.dataset.qid); else window.MCA_WRONG.add(mcq.dataset.qid); }
   });
 
   // Topic progress, saved per browser.
@@ -66,6 +78,35 @@
     paint();
   });
 
+  // Home page: "your progress" strip, shown only once there is something to show.
+  var you = document.querySelector('[data-you]');
+  if (you) {
+    var labels = JSON.parse(you.dataset.youLabels || '{}');
+    var mocks = store.get('mca:mocks', []);
+    var diag = store.get('mca:diag', null);
+    var topicIds = (you.dataset.youTopics || '').split(' ').filter(Boolean);
+    var doneCount = topicIds.filter(function (id) { return done.has(id); }).length;
+    var anything = doneCount || mocks.length || diag || wrong.size;
+    if (anything) {
+      you.hidden = false;
+      you.querySelector('[data-you-done]').textContent = doneCount;
+      you.querySelector('[data-you-wrong]').textContent = wrong.size;
+      if (mocks.length) {
+        var last = mocks[mocks.length - 1];
+        you.querySelector('[data-you-mock]').textContent = last.score + '/' + last.max;
+      }
+      if (diag && diag.per) {
+        var parts = Object.keys(labels).filter(function (id) { return diag.per[id]; }).map(function (id) {
+          return labels[id] + ' ' + diag.per[id].right + '/' + diag.per[id].total;
+        });
+        you.querySelector('[data-you-diag]').hidden = false;
+        you.querySelector('[data-you-diag-text]').textContent = parts.join(' · ');
+      }
+      var retry = you.querySelector('[data-you-retry]');
+      if (retry && wrong.size) retry.hidden = false;
+    }
+  }
+
   // Switching language keeps you on the same topic.
   var langLink = document.querySelector('.lang-switch');
   if (langLink) {
@@ -76,6 +117,11 @@
 
   var printBtn = document.querySelector('.print');
   if (printBtn) printBtn.addEventListener('click', function () { window.print(); });
+
+  // Offline: after the first visit the whole site is cached, so it opens without data.
+  if ('serviceWorker' in navigator && document.documentElement.dataset.sw) {
+    navigator.serviceWorker.register(document.documentElement.dataset.sw).catch(function () { /* unsupported or blocked */ });
+  }
 
   paint();
 })();

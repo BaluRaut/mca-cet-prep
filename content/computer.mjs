@@ -1292,4 +1292,86 @@ int main(void) {
       },
     ],
   },
+
+  // ───────────────────────────── Computer Awareness ─────────────────────────────
+  {
+    id: 'computer-awareness',
+    title: 'Computer Awareness: Internet, Email, Web and Software',
+    syllabus: 'Computer Basics',
+    analogy: {
+      title: 'Posting a wedding patrika from Pune to the village',
+      oneLine: 'Roads are the internet, the letter is email, name@village is username@domain, and the postman is DNS.',
+      story: `Your cousin’s wedding is fixed and you are posting the patrika (invitation card) from Pune to relatives in the village. The <b>roads, railways and trucks</b> that connect every town are the <b>internet</b>: one physical network that carries letters, parcels, passengers and milk alike. The <b>letters</b> travelling on it are <b>email</b>; the <b>shops and offices</b> you can visit along those roads are the <b>World Wide Web</b> — just one of the many things the roads are used for. On the envelope you write <code>Sunil Patil, Mhaswad</code>: the <i>person</i> and the <i>place</i>, exactly the <b>username@domain</b> of an email address. The Pune post office that accepts your letter and sends it onward is the <b>sending mail server (SMTP)</b>; the Mhaswad post office that holds it until Sunil collects it is the <b>receiving server (POP/IMAP)</b>. The village <b>postman</b> who knows that “Sunil Patil” means house number 42 is <b>DNS</b>, turning a name into a number (IP address). You print extra copies for the whole family (<b>CC</b>), slip a photo into the envelope (<b>attachment</b>), and send an open postcard to a friend (<b>HTTP</b>) but a sealed registered envelope to the bank (<b>HTTPS</b>). The patrika is printed in standard Devanagari, so any relative in any village can read it — just as a page written in standard <b>HTML</b> opens in any browser.`,
+      map: [
+        ['Roads and railways joining every town and village', 'The internet: the physical network of networks'],
+        ['Shops and offices you can visit along the roads', 'The World Wide Web: web pages, one service on the internet'],
+        ['<code>Sunil Patil, Mhaswad</code> on the envelope', 'Email address <code>username@domain</code>; the post offices at both ends are mail servers (SMTP / POP, IMAP)'],
+        ['The postman who knows which house “Sunil Patil” is', 'DNS: domain name → IP address'],
+        ['Open postcard vs sealed registered envelope', 'HTTP vs HTTPS (encrypted with SSL/TLS)'],
+      ],
+    },
+    concept: [
+      `The <b>internet</b> is a worldwide network of networks that connects computers using the <b>TCP/IP</b> protocols; it grew out of <b>ARPANET</b> (1969). The <b>World Wide Web (WWW)</b> is only one service running on it — a collection of interlinked pages (<b>hypertext</b>) invented by <b>Tim Berners-Lee</b> at CERN in 1989; email, file transfer (FTP) and video calls are other services. A web page is found by its <b>URL</b> (Uniform Resource Locator), for example <code>https://www.mahacet.org/exams/mca.html</code>: the <b>protocol</b> (<code>https</code>), the <b>domain name</b> (<code>www.mahacet.org</code>, whose last part <code>.org</code> is the <b>top-level domain</b>, like <code>.com</code>, <code>.in</code>, <code>.edu</code>, <code>.gov</code>), and the <b>path and file name</b> (<code>/exams/mca.html</code>). <b>HTTP</b> (HyperText Transfer Protocol, port 80) carries pages between a web server and your <b>browser</b> (Chrome, Firefox, Edge, Safari); <b>HTTPS</b> adds SSL/TLS encryption (port 443) and shows the padlock. Pages are written in <b>HTML</b> (HyperText Markup Language): a <i>markup</i> language of tags such as <code>&lt;p&gt;</code> and <code>&lt;a href="…"&gt;</code> that describe structure and links, not a programming language. Because HTML is an open standard understood by every browser on every operating system, the same document can be displayed anywhere — its main advantage. <b>Email</b> (electronic mail) delivers messages to an address of the form <b>username@domain</b>, e.g. <code>sunil.patil@gmail.com</code>: the <b>user name</b> (mailbox) before the <code>@</code> and the <b>domain name</b> of the mail provider after it. <b>SMTP</b> (Simple Mail Transfer Protocol) sends mail; <b>POP3</b> (Post Office Protocol) downloads it to one device; <b>IMAP</b> (Internet Message Access Protocol) keeps it on the server so phone and laptop stay in sync. <b>CC</b> (carbon copy) recipients are visible to everyone; <b>BCC</b> (blind carbon copy) recipients are hidden; an <b>attachment</b> is a file sent along with the message; unwanted bulk mail is <b>spam</b>.`,
+      `<b>Software</b> is of three kinds. <b>System software</b> runs the machine itself: the operating system (Windows, Linux, macOS, Android), device drivers and language translators (compiler, interpreter, assembler). <b>Application software</b> does the user’s work: word processor (MS Word), spreadsheet (Excel), presentation (PowerPoint), browser, WhatsApp, Tally. <b>Utility software</b> maintains the system: antivirus, disk clean-up, file compression (WinRAR, 7-Zip), backup tools. Software burnt into ROM (the BIOS) is <b>firmware</b>; <b>open-source</b> software (Linux, Firefox) ships its source code, <b>proprietary</b> software (Windows, MS Office) does not. A file’s <b>extension</b> tells its type: <code>.docx</code> Word, <code>.xlsx</code> Excel, <code>.pptx</code> PowerPoint, <code>.pdf</code> portable document, <code>.txt</code> plain text, <code>.jpg</code>/<code>.png</code>/<code>.gif</code> images, <code>.mp3</code> audio, <code>.mp4</code> video, <code>.zip</code> compressed archive, <code>.exe</code> Windows program, <code>.apk</code> Android app, <code>.html</code> web page, <code>.c</code> C source. <b>Networks</b> are named by size: <b>PAN</b> (personal, Bluetooth), <b>LAN</b> (Local Area Network — one building or campus, such as a college lab), <b>MAN</b> (a city) and <b>WAN</b> (Wide Area Network — across cities and countries; the internet is the largest WAN). Every device on a network has an <b>IP address</b>: IPv4 is 32 bits written as four numbers from 0 to 255 separated by dots (<code>192.168.1.1</code>); IPv6 is 128 bits. <b>DNS</b> (Domain Name System) translates names such as <code>www.google.com</code> into IP addresses — the phone book of the internet. A <b>modem</b> (modulator–demodulator) converts the computer’s digital signals to and from the analog signals of a telephone or cable line; a <b>router</b> forwards data packets between networks and shares one connection among many devices; a <b>switch</b> or <b>hub</b> joins devices inside a LAN; <b>Wi-Fi</b> (IEEE 802.11) is a wireless LAN; an <b>ISP</b> (Internet Service Provider — Jio, Airtel, BSNL) connects you to the internet. <b>Bandwidth</b> is the maximum rate at which a link carries data, measured in bits per second (kbps, Mbps, Gbps).`,
+      `<b>Security</b>: <b>malware</b> is any harmful program. A <b>virus</b> attaches itself to a file and spreads when that file is run; a <b>worm</b> copies itself across a network on its own; a <b>Trojan horse</b> hides inside software that looks useful; <b>spyware</b> steals information and <b>ransomware</b> locks your files for money. <b>Antivirus</b> software (Quick Heal from Pune, Norton, McAfee, Kaspersky) detects and removes malware and must be updated regularly. A <b>firewall</b> (hardware or software) filters the traffic between a trusted network and the internet according to rules. <b>Phishing</b> is a fake email, SMS or website pretending to be a bank or a known company to “fish” for passwords, OTPs and card numbers; a bank never asks for these. A <b>strong password</b> is long (at least 8–12 characters), mixes upper- and lower-case letters, digits and symbols, is not a name or a date of birth, and is backed by <b>two-factor authentication</b> (OTP). <b>Encryption</b> scrambles data so that only the holder of the key can read it. <b>Types of computer</b> by size and power, smallest first: <b>microcomputer</b> (one microprocessor — desktop, laptop/notebook, tablet, smartphone), <b>minicomputer</b> (mid-range, many users in a department), <b>mainframe</b> (thousands of users at once — banks, railway reservation) and <b>supercomputer</b> (the fastest, speed measured in FLOPS — weather forecasting, research; India’s PARAM 8000 was built by C-DAC Pune in 1991). By the signals they use, computers are analog, digital or hybrid. <b>Generations</b> are named by their switching technology: <b>1st</b> (about 1940–56) vacuum tubes, machine language, punched cards (ENIAC, UNIVAC); <b>2nd</b> (1956–63) transistors, assembly language and early high-level languages (FORTRAN, COBOL); <b>3rd</b> (1964–71) integrated circuits, keyboards, monitors and operating systems (IBM 360); <b>4th</b> (1971 onward) microprocessors with VLSI (Intel 4004), personal computers, GUI and networks; <b>5th</b> (present and beyond) ULSI, parallel processing and artificial intelligence.`,
+    ],
+    keyPoints: [
+      'Internet = network of networks (TCP/IP); WWW = web pages on it, invented by Tim Berners-Lee (1989); email and FTP are other internet services',
+      'URL = protocol://domain/path, e.g. <code>https://www.mahacet.org/exams/mca.html</code>; HTTP port 80, HTTPS = HTTP + SSL/TLS, port 443',
+      'HTML is a markup language of tags, not a programming language; any browser on any OS can display an HTML page',
+      'Email address = user name @ domain name; SMTP sends, POP3 downloads to one device, IMAP keeps mail on the server; CC visible, BCC hidden',
+      'Software: system (OS, drivers, translators) · application (Word, Excel, browser) · utility (antivirus, compression, backup); firmware sits in ROM',
+      'PAN &lt; LAN &lt; MAN &lt; WAN; IPv4 = 32 bits (four numbers 0–255), IPv6 = 128 bits; DNS: name → IP; modem: digital ↔ analog; router: joins networks',
+      'Virus needs a host file, worm spreads by itself, Trojan hides in useful-looking software; firewall filters traffic; phishing = fake message fishing for passwords/OTP',
+      'Size order micro &lt; mini &lt; mainframe &lt; super; generations: vacuum tube → transistor → IC → microprocessor (VLSI) → AI (ULSI)',
+    ],
+    example: {
+      q: 'Break the URL <code>https://www.mahacet.org/exams/mca.html</code> and the email address <code>sunil.patil@gmail.com</code> into their parts, and name the protocol used at each step when Sunil’s laptop sends a mail that his phone later reads.',
+      steps: [
+        'URL: <code>https</code> is the protocol (secure HTTP, port 443); <code>www.mahacet.org</code> is the domain name — <code>www</code> the host/sub-domain, <code>mahacet</code> the organisation, <code>.org</code> the top-level domain; <code>/exams/mca.html</code> is the path to the file <code>mca.html</code>, an HTML page.',
+        'The browser asks DNS for the IP address of <code>www.mahacet.org</code>, connects to that server, fetches <code>mca.html</code> over HTTPS and renders the HTML tags into a page.',
+        'Email: <code>sunil.patil</code> is the user name (mailbox) and <code>gmail.com</code> is the domain name of the mail provider; the <code>@</code> (“at”) separates them.',
+        'Sending: the laptop’s mail program hands the message to Gmail’s server with SMTP, and SMTP also carries it on to the recipient’s server. Reading: the phone fetches it with IMAP (mail stays on the server, so both devices show it) — or POP3, which would download it to one device only.',
+      ],
+      answer: 'URL = protocol + domain (host · organisation · TLD) + path/file; email = user name @ domain name; send with SMTP, receive with IMAP or POP3.',
+    },
+    shortcut:
+      'Read a URL left to right — <i>how</i> (protocol) → <i>where</i> (domain; its top-level domain is the last piece) → <i>what</i> (path/file). Read an email address around the <code>@</code>: person on the left, post office (domain) on the right. For “which protocol” questions: S in SMTP = Send; POP and IMAP = Pick up; HTTP = pages; FTP = files.',
+    traps: [
+      'The internet and the World Wide Web are not the same: the internet is the network; the web is one service on it (email is another). “Who invented the internet?” is not answered by Tim Berners-Lee — he invented the web.',
+      'HTML is not a programming language and a browser does not “run” it; it marks up text with tags that any browser can display. Likewise HTTP is a protocol, not a language.',
+      'A notebook/laptop is a kind of microcomputer, not a separate class, so in an odd-one-out with micro-, mini- and supercomputer it is the odd one. And modem ≠ router: the modem talks to the ISP’s line, the router shares the connection — a home “Wi-Fi box” just combines both.',
+    ],
+    practice: [
+      {
+        q: 'An email address such as <code>sunil.patil@rediffmail.com</code> is made up of which two parts, separated by the <code>@</code> sign?',
+        options: ['A user name and a domain name', 'A password and a server name', 'A first name and a surname', 'An IP address and a port number'],
+        answer: 0,
+        why: 'The part before @ is the user name (mailbox) and the part after it is the domain name of the mail provider. No password or IP address appears in an address.',
+      },
+      {
+        q: 'Which of the following is an advantage of writing a web page in HTML?',
+        options: [
+          'The page can do calculations without any server',
+          'The page can be displayed by any web browser on any operating system',
+          'The page is encrypted automatically before it is sent',
+          'The page opens only in the browser it was written for',
+        ],
+        answer: 1,
+        why: 'HTML is an open standard that every browser understands, so one document displays everywhere. HTML has no logic for calculations, and encryption comes from HTTPS, not HTML.',
+      },
+      {
+        q: 'Find the odd one out.',
+        options: ['Microcomputer', 'Minicomputer', 'Notebook', 'Supercomputer'],
+        answer: 2,
+        why: 'Micro-, mini- and supercomputer are classes of computer by size and power. A notebook is just one kind of microcomputer, not a class of its own.',
+      },
+      {
+        q: 'Which protocol is used to <i>send</i> an email from the sender’s mail program to the mail server?',
+        options: ['HTTP', 'POP3', 'IMAP', 'SMTP'],
+        answer: 3,
+        why: 'SMTP (Simple Mail Transfer Protocol) sends mail; POP3 and IMAP are for receiving and reading it; HTTP carries web pages.',
+      },
+    ],
+  },
 ];

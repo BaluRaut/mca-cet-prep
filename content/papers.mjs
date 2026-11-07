@@ -57,5 +57,5 @@ export const OBSERVED_TYPES = [
   { topic: 'permutations-combinations', en: 'Forming numbers from given digits with a divisibility rule; the dictionary rank of a word', mr: 'दिलेल्या अंकांपासून विभाज्यतेच्या अटीसह संख्या बनवणे; शब्दकोशातील शब्दाचा क्रमांक' },
   { topic: 'mensuration-3d', en: 'Melting a cuboid into a sphere and finding the radius', mr: 'इष्टिकाचिती वितळवून गोल बनवणे आणि त्रिज्या काढणे' },
   { topic: 'sets-relations-functions', en: 'Counting elements of sets defined by a rule (odd numbers below 200)', mr: 'नियमाने दिलेल्या संचातील घटक मोजणे (200 पेक्षा लहान विषम संख्या)' },
-  { topic: null, en: 'General computer awareness: the parts of an email address, why HTML pages work in every browser', mr: 'सामान्य संगणक ज्ञान: ईमेल पत्त्याचे भाग, HTML पाने प्रत्येक ब्राउझरमध्ये का दिसतात' },
+  { topic: 'computer-awareness', en: 'General computer awareness: the parts of an email address, why HTML pages work in every browser', mr: 'सामान्य संगणक ज्ञान: ईमेल पत्त्याचे भाग, HTML पाने प्रत्येक ब्राउझरमध्ये का दिसतात' },
 ];

@@ -3,7 +3,8 @@
 //   node scripts/build.mjs --check  validate only (exit 1 on errors)
 //   node scripts/build.mjs --draft  build even if the study plan or Marathi translations are incomplete
 
-import { cp, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -46,6 +47,9 @@ for (const f of mrFiles) {
     MR[id] = { ...tr, _file: f };
   }
 }
+
+const VOCAB_FILE = join(ROOT, 'content', 'vocab.mjs');
+const VOCAB = existsSync(VOCAB_FILE) ? ((await importFresh(VOCAB_FILE)).default ?? []) : null;
 
 // ---------- validate ----------
 
@@ -181,6 +185,21 @@ for (const id of seenIds.keys()) {
 for (const o of OBSERVED_TYPES) {
   if (o.topic && !seenIds.has(o.topic)) (LENIENT ? warnings : errors).push(`papers: unknown topic id "${o.topic}"`);
 }
+if (!VOCAB) (LENIENT ? warnings : errors).push('content/vocab.mjs is missing');
+else {
+  const seenWords = new Set();
+  VOCAB.forEach((w, i) => {
+    const at = `vocab[${i}]${w?.word ? ` (${w.word})` : ''}`;
+    if (!/^[a-z][a-z-]*$/.test(w?.word ?? '')) errors.push(`${at}: word must be lowercase letters`);
+    if (seenWords.has(w?.word)) errors.push(`${at}: duplicate word`);
+    seenWords.add(w?.word);
+    if (!['noun', 'verb', 'adj', 'adv'].includes(w?.pos)) errors.push(`${at}.pos: expected noun/verb/adj/adv`);
+    for (const k of ['meaning', 'mr', 'eg']) checkHtml(`${at}.${k}`, w?.[k]);
+    if (!Array.isArray(w?.syn) || w.syn.length < 2 || w.syn.length > 3) errors.push(`${at}.syn: expected 2–3 synonyms`);
+    if (!Array.isArray(w?.ant) || w.ant.length < 1 || w.ant.length > 2) errors.push(`${at}.ant: expected 1–2 antonyms`);
+    for (const x of [...(w?.syn ?? []), ...(w?.ant ?? [])]) if (x === w?.word) errors.push(`${at}: a word cannot be its own synonym or antonym`);
+  });
+}
 if (PLAN_MR.length !== STUDY_PLAN.length) errors.push('i18n PLAN_MR must have one entry per study-plan week');
 
 for (const w of warnings) console.warn(`warn  ${w}`);
@@ -188,7 +207,7 @@ for (const e of errors) console.error(`error ${e}`);
 const topicCount = SECTIONS.reduce((n, s) => n + s.topics.length, 0);
 const questionCount = SECTIONS.reduce((n, s) => n + s.topics.reduce((m, t) => m + (t.practice?.length ?? 0), 0), 0);
 const translated = SECTIONS.reduce((n, s) => n + s.topics.filter((t) => MR[t.id]).length, 0);
-console.log(`${topicCount} topics (${translated} in Marathi), ${questionCount} practice questions, ${errors.length} error(s), ${warnings.length} warning(s)`);
+console.log(`${topicCount} topics (${translated} in Marathi), ${questionCount} practice questions, ${VOCAB?.length ?? 0} words, ${errors.length} error(s), ${warnings.length} warning(s)`);
 if (errors.length) process.exit(1);
 if (CHECK_ONLY) process.exit(0);
 
@@ -225,6 +244,7 @@ function page({ lang, file, title, description, hue = 250, body, scripts = [] })
   const nav = [
     ['index.html', T.nav.home],
     ...SECTIONS.map((s) => [`${s.id}.html`, sec(s, lang).short]),
+    ['words.html', T.nav.words],
     ['revision.html', T.nav.revision],
     ['papers.html', T.nav.papers],
     ['mock.html', T.nav.mock],
@@ -232,7 +252,7 @@ function page({ lang, file, title, description, hue = 250, body, scripts = [] })
   const other = lang === 'en' ? `mr/${file}` : `../${file}`;
   const otherLang = lang === 'en' ? 'mr' : 'en';
   return `<!doctype html>
-<html lang="${T.htmlLang}">
+<html lang="${T.htmlLang}" data-sw="${up}sw.js">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -271,8 +291,8 @@ ${scripts.map((s) => `<script src="${up}${s}"></script>`).join('\n')}
 `;
 }
 
-function renderMcq(p, n, lang) {
-  return `<div class="mcq" data-answer="${p.answer}">
+function renderMcq(p, n, lang, topicId) {
+  return `<div class="mcq" data-answer="${p.answer}" data-qid="${topicId}-${n}">
   <p class="q" lang="en"><span class="qn">Q${n}.</span> ${p.q}</p>
   ${p.qHelp ? `<p class="q-help">${p.qHelp}</p>` : ''}
   ${codeBlock(p.code)}
@@ -331,7 +351,7 @@ function renderTopic(t, section, index, lang) {
 
   <section class="practice">
     <h3>${T.practice} <span class="muted">· ${T.practiceHint}</span></h3>
-    ${t.practice.map((p, i) => renderMcq(p, i + 1, lang)).join('\n')}
+    ${t.practice.map((p, i) => renderMcq(p, i + 1, lang, t.id)).join('\n')}
   </section>
   <p class="back"><a href="#top">${T.backToTop}</a></p>
 </article>`;
@@ -458,8 +478,58 @@ const HOME = {
   },
 };
 
+const HOME_EXTRA = {
+  en: {
+    startHere: 'Start here',
+    diag: 'Take the 20-question diagnostic',
+    diagHint: '18 minutes. It tells you which section to study first.',
+    you: 'Your progress',
+    youDone: (n) => `of ${n} topics done`,
+    youMock: 'last test score',
+    youWrong: 'questions to retry',
+    youDiag: 'Diagnostic',
+    retake: 'retake',
+    retry: 'Retry my mistakes',
+    examDay: 'Exam-day checklist',
+    examDayNote: 'From the official brochure. Read it the night before.',
+    checklist: [
+      'Hall ticket, printed, with a recent photo affixed. Download it from the candidate login; the exam date, reporting time and centre are on it.',
+      'One original photo ID with the same name as on the hall ticket: PAN card, passport, permanent driving licence, voter card, Aadhaar or e-Aadhaar with photo, bank passbook with photo, or a valid college ID. A ration card or learner’s licence is not accepted.',
+      'Reach the centre before the reporting time on the hall ticket. Late candidates are not allowed in. Plan to be at the venue about 140 minutes in all, for verification, login and instructions.',
+      'No mobile phone, smart watch, headphones or any electronic device in the hall. Being found with one means disqualification. Leave them at home or with someone outside.',
+      'The test is on a computer: the option you click is your answer, and you can change it before submitting. There is no negative marking, so answer every question.',
+      'Sleep well the night before and eat before you leave. Read the revision sheet once; do not start a new topic on exam day.',
+    ],
+  },
+  mr: {
+    startHere: 'इथून सुरू करा',
+    diag: '20 प्रश्नांची प्रारंभिक चाचणी द्या',
+    diagHint: '18 मिनिटे. कोणता विभाग आधी अभ्यासायचा ते सांगते.',
+    you: 'तुमची प्रगती',
+    youDone: (n) => `${n} पैकी विषय पूर्ण`,
+    youMock: 'शेवटच्या परीक्षेचे गुण',
+    youWrong: 'पुन्हा सोडवायचे प्रश्न',
+    youDiag: 'प्रारंभिक चाचणी',
+    retake: 'पुन्हा द्या',
+    retry: 'माझ्या चुका पुन्हा सोडवा',
+    examDay: 'परीक्षेच्या दिवसाची यादी',
+    examDayNote: 'अधिकृत माहितीपुस्तिकेतून. आदल्या रात्री वाचा.',
+    checklist: [
+      'हॉल तिकीट, प्रिंट केलेले, अलीकडचा फोटो चिकटवलेले. उमेदवार लॉगिनमधून डाउनलोड करा; परीक्षेची तारीख, हजर राहण्याची वेळ आणि केंद्र त्यावर असते.',
+      'हॉल तिकिटावरील नावाशी जुळणारे एक मूळ फोटो ओळखपत्र: PAN कार्ड, पासपोर्ट, कायमचा ड्रायव्हिंग लायसन्स, मतदार ओळखपत्र, फोटोसह आधार किंवा ई-आधार, फोटोसह बँक पासबुक, किंवा वैध कॉलेज ओळखपत्र. रेशन कार्ड किंवा लर्निंग लायसन्स चालत नाही.',
+      'हॉल तिकिटावरील हजर राहण्याच्या वेळेआधी केंद्रावर पोहोचा. उशिरा आलेल्यांना प्रवेश मिळत नाही. पडताळणी, लॉगिन आणि सूचनांसाठी एकूण सुमारे 140 मिनिटे केंद्रावर लागतील असे गृहीत धरा.',
+      'परीक्षा हॉलमध्ये मोबाइल, स्मार्ट वॉच, हेडफोन किंवा कोणतेही इलेक्ट्रॉनिक उपकरण नाही. जवळ सापडले तर अपात्र ठरवले जाते. घरी किंवा बाहेर कोणाकडे ठेवा.',
+      'परीक्षा संगणकावर होते: तुम्ही क्लिक केलेला पर्याय हेच तुमचे उत्तर, आणि सबमिट करण्याआधी ते बदलता येते. निगेटिव्ह मार्किंग नाही, म्हणून प्रत्येक प्रश्न सोडवा.',
+      'आदल्या रात्री पुरेशी झोप घ्या आणि निघण्याआधी जेवा. उजळणी पत्रक एकदा वाचा; परीक्षेच्या दिवशी नवीन विषय सुरू करू नका.',
+    ],
+  },
+};
+
 function renderHome(lang) {
   const H = HOME[lang];
+  const X = HOME_EXTRA[lang];
+  const allTopicIds = SECTIONS.flatMap((s) => s.topics.map((t) => t.id)).join(' ');
+  const labels = Object.fromEntries(SECTIONS.map((s) => [s.id, sec(s, lang).short]));
   const stats = [EXAM.questions, EXAM.marks, EXAM.minutes, '0']
     .map((v, i) => `<div class="stat"><b>${v}</b><span>${H.stats[i]}</span></div>`).join('');
 
@@ -494,6 +564,18 @@ function renderHome(lang) {
   <h1>${H.h1}</h1>
   <p class="lede">${H.lede(topicCount)}</p>
   <div class="stats">${stats}</div>
+  <div class="start-here"><span class="eyebrow">${X.startHere}</span> <a class="button" href="mock.html#diag">${X.diag}</a> <span class="hint">${X.diagHint}</span></div>
+</section>
+
+<section class="you" data-you hidden data-you-topics="${allTopicIds}" data-you-labels="${esc(JSON.stringify(labels))}">
+  <h2>${X.you}</h2>
+  <div class="stats">
+    <div class="stat"><b data-you-done>0</b><span>${X.youDone(topicCount)}</span></div>
+    <div class="stat"><b data-you-mock>–</b><span>${X.youMock}</span></div>
+    <div class="stat"><b data-you-wrong>0</b><span>${X.youWrong}</span></div>
+  </div>
+  <p data-you-diag hidden><b>${X.youDiag}:</b> <span data-you-diag-text></span> · <a href="mock.html#diag">${X.retake}</a></p>
+  <p><a class="button ghost" href="mock.html#retry" data-you-retry hidden>${X.retry}</a></p>
 </section>
 
 <section>
@@ -518,6 +600,12 @@ function renderHome(lang) {
   <h2>${H.plan}</h2>
   <p class="muted">${H.planNote}</p>
   <div class="table-wrap"><table class="plan">${plan}</table></div>
+</section>
+
+<section>
+  <h2>${X.examDay}</h2>
+  <p class="muted">${X.examDayNote}</p>
+  <ul class="checklist">${X.checklist.map((c) => `<li>${c}</li>`).join('')}</ul>
 </section>
 
 <section class="cta">
@@ -557,6 +645,7 @@ function renderRevision(lang) {
   <p class="lede">${R.lede}</p>
   <p><button class="button ghost print" type="button">${R.print}</button></p>
 </section>
+${renderSpeedMaths(lang)}
 ${SECTIONS.map((raw) => {
     const s = sec(raw, lang);
     return `<section class="rev-section" style="--hue:${s.hue}">
@@ -572,6 +661,54 @@ ${SECTIONS.map((raw) => {
 </section>`;
   }).join('\n')}`;
   return page({ lang, file: 'revision.html', title: R.title, description: R.description, body });
+}
+
+const SPEED = {
+  en: {
+    title: 'Speed maths: know these cold',
+    note: 'Every value below is a tool you should not have to compute in the hall. The numbers are generated by the build, not typed, so they are exact.',
+    squares: 'Squares', cubes: 'Cubes', pow2: 'Powers of 2', frac: 'Fraction ↔ percent', div: 'Divisibility rules', consts: 'Constants and logs', trig: 'Trig values',
+    divHead: ['By', 'Rule'],
+    divRules: [['2', 'last digit even'], ['3', 'digit sum divisible by 3'], ['4', 'last two digits divisible by 4'], ['5', 'ends in 0 or 5'], ['6', 'divisible by both 2 and 3'], ['8', 'last three digits divisible by 8'], ['9', 'digit sum divisible by 9'], ['11', '(sum of odd-place digits) − (sum of even-place digits) is 0 or a multiple of 11']],
+  },
+  mr: {
+    title: 'झटपट गणित: हे पाठ असलेच पाहिजे',
+    note: 'खालील प्रत्येक किंमत हॉलमध्ये मोजत बसायची नसते. या संख्या टाइप केलेल्या नाहीत, build ने तयार केलेल्या आहेत, त्यामुळे अचूक आहेत.',
+    squares: 'वर्ग', cubes: 'घन', pow2: '2 चे घात', frac: 'अपूर्णांक ↔ टक्केवारी', div: 'विभाज्यतेचे नियम', consts: 'स्थिरांक व लॉग', trig: 'त्रिकोणमितीय किंमती',
+    divHead: ['ने', 'नियम'],
+    divRules: [['2', 'शेवटचा अंक सम'], ['3', 'अंकांची बेरीज 3 ने भाग जाणारी'], ['4', 'शेवटचे दोन अंक 4 ने भाग जाणारे'], ['5', 'शेवटी 0 किंवा 5'], ['6', '2 आणि 3 दोन्हींनी भाग जाणारी'], ['8', 'शेवटचे तीन अंक 8 ने भाग जाणारे'], ['9', 'अंकांची बेरीज 9 ने भाग जाणारी'], ['11', '(विषम स्थानांच्या अंकांची बेरीज) − (सम स्थानांच्या अंकांची बेरीज) 0 किंवा 11 चा पट']],
+  },
+};
+
+function renderSpeedMaths(lang) {
+  const S = SPEED[lang];
+  const table = (head, rows) => `<table><thead><tr>${head.map((h) => `<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const columns = (pairs, cols) => {
+    const rows = [];
+    for (let i = 0; i < pairs.length; i += cols) rows.push(pairs.slice(i, i + cols).flat());
+    return rows;
+  };
+  const pct = (x) => `${(100 * x).toFixed(2).replace(/\.?0+$/, '')}%`;
+  const squares = Array.from({ length: 30 }, (_, i) => [`${i + 1}²`, String((i + 1) ** 2)]);
+  const cubes = Array.from({ length: 15 }, (_, i) => [`${i + 1}³`, String((i + 1) ** 3)]);
+  const pow2 = Array.from({ length: 17 }, (_, i) => [`2<sup>${i}</sup>`, String(2 ** i)]);
+  const fracs = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 20, 25].map((d) => [`1/${d}`, pct(1 / d)]);
+  const consts = [['√2', '1.414'], ['√3', '1.732'], ['√5', '2.236'], ['π', '3.1416 ≈ 22/7'], ['e', '2.718'], ['log<sub>10</sub> 2', '0.3010'], ['log<sub>10</sub> 3', '0.4771'], ['log<sub>10</sub> 7', '0.8451'], ['ln 10', '2.3026']];
+  const trig = [['sin', '0', '1/2', '1/√2', '√3/2', '1'], ['cos', '1', '√3/2', '1/√2', '1/2', '0'], ['tan', '0', '1/√3', '1', '√3', '—']];
+  const card = (title, html) => `<article class="rev"><h3>${title}</h3>${html}</article>`;
+  return `<section class="rev-section speed-section">
+  <h2>${S.title}</h2>
+  <p class="muted">${S.note}</p>
+  <div class="speed">
+    ${card(S.squares, table(['n', 'n²', 'n', 'n²', 'n', 'n²'], columns(squares, 3)))}
+    ${card(S.cubes, table(['n', 'n³', 'n', 'n³', 'n', 'n³'], columns(cubes, 3)))}
+    ${card(S.pow2, table(['2ⁿ', '', '2ⁿ', '', '2ⁿ', ''], columns(pow2, 3)))}
+    ${card(S.frac, table(['', '%', '', '%'], columns(fracs, 2)))}
+    ${card(S.div, table(S.divHead, S.divRules))}
+    ${card(S.consts, table(['', ''], consts))}
+    ${card(S.trig, table(['', '0°', '30°', '45°', '60°', '90°'], trig))}
+  </div>
+</section>`;
 }
 
 const MOCK = {
@@ -696,6 +833,60 @@ function renderPapers(lang) {
   return page({ lang, file: 'papers.html', title: P.title, description: P.description, body });
 }
 
+const VOCAB_UI = {
+  en: {
+    title: 'Word list · MCA CET Prep',
+    description: '200 high-frequency exam words with meanings, synonyms, antonyms, Marathi meanings, flashcards and a synonym quiz.',
+    eyebrow: 'Vocabulary',
+    h1: (n) => `${n} words for the English section`,
+    lede: 'The study plan says ten new words a day. Here they are: twenty days of ten, each with its meaning, synonyms, antonyms, Marathi meaning and a sentence. Practise with flashcards, then take the quiz; words you miss collect under “Didn’t know” so you can drill only those.',
+    dayNav: 'Jump to a day',
+    day: 'Day',
+    i18n: { scope: 'Choose words', all: 'All words', unknown: 'Didn’t know', day: 'Day', flashcards: 'Flashcards', quiz: 'Quiz (10 Q)', setupNote: 'Flashcards: see the word, recall the meaning, then check. Quiz: synonym and antonym questions made from the list, in exam style.', empty: 'No words in this set yet.', show: 'Show meaning', knew: 'Knew it', didnt: 'Didn’t know', stop: 'Stop', backToSetup: 'Back', cardsDone: '{n} cards done, {m} marked “didn’t know”.', quizDone: 'Score: {r} / {n}', missed: 'Words to revise:', quizAgain: 'Another 10', synOf: 'Synonym of', antOf: 'Antonym of', next: 'Next →', syn: 'Synonyms', ant: 'Antonyms', markUnknown: 'Didn’t know', marked: '✓ Marked' },
+  },
+  mr: {
+    title: 'शब्दसंग्रह · MCA CET तयारी',
+    description: 'परीक्षेत वारंवार येणारे 200 इंग्रजी शब्द: अर्थ, समानार्थी, विरुद्धार्थी, मराठी अर्थ, flashcards आणि समानार्थी शब्दांची प्रश्नमंजुषा.',
+    eyebrow: 'शब्दसंग्रह',
+    h1: (n) => `इंग्रजी विभागासाठी ${n} शब्द`,
+    lede: 'अभ्यास आराखडा म्हणतो रोज दहा नवे शब्द. ते हे: वीस दिवस, रोज दहा, प्रत्येकाचा अर्थ, समानार्थी, विरुद्धार्थी, मराठी अर्थ आणि एक वाक्य. आधी flashcards ने सराव करा, मग प्रश्नमंजुषा द्या; चुकलेले शब्द “माहीत नव्हते” मध्ये जमा होतात, म्हणजे फक्त तेच पुन्हा घोटता येतात.',
+    dayNav: 'दिवस निवडा',
+    day: 'दिवस',
+    i18n: { scope: 'शब्द निवडा', all: 'सर्व शब्द', unknown: 'माहीत नव्हते', day: 'दिवस', flashcards: 'Flashcards', quiz: 'प्रश्नमंजुषा (10 प्रश्न)', setupNote: 'Flashcards: शब्द पाहा, अर्थ आठवा, मग तपासा. प्रश्नमंजुषा: यादीतून तयार होणारे परीक्षेसारखे समानार्थी/विरुद्धार्थी प्रश्न.', empty: 'या संचात अजून शब्द नाहीत.', show: 'अर्थ दाखवा', knew: 'माहीत होते', didnt: 'माहीत नव्हते', stop: 'थांबा', backToSetup: 'मागे', cardsDone: '{n} कार्ड झाली, {m} “माहीत नव्हते” म्हणून खूण केली.', quizDone: 'गुण: {r} / {n}', missed: 'पुन्हा पाहायचे शब्द:', quizAgain: 'आणखी 10', synOf: 'समानार्थी शब्द:', antOf: 'विरुद्धार्थी शब्द:', next: 'पुढे →', syn: 'समानार्थी', ant: 'विरुद्धार्थी', markUnknown: 'माहीत नव्हते', marked: '✓ खूण केली' },
+  },
+};
+
+function renderVocab(lang) {
+  const U = VOCAB_UI[lang];
+  const list = VOCAB ?? [];
+  const days = Math.ceil(list.length / 10);
+  const nav = Array.from({ length: days }, (_, i) => `<a href="#day-${i + 1}">${U.day} ${i + 1}</a>`).join('');
+  const dayHtml = Array.from({ length: days }, (_, d) => {
+    const ws = list.slice(d * 10, d * 10 + 10);
+    return `<section class="rev-section" id="day-${d + 1}">
+  <h2>${U.day} ${d + 1} <span class="muted" lang="en">· ${ws[0].word} – ${ws[ws.length - 1].word}</span></h2>
+  <div class="rev-grid">${ws.map((w) => `<article class="word rev">
+    <h3 lang="en">${w.word} <span class="pos">${w.pos}</span></h3>
+    <p class="mean">${w.meaning}</p>
+    <p><b>${U.i18n.syn}:</b> <span lang="en">${w.syn.join(', ')}</span></p>
+    <p><b>${U.i18n.ant}:</b> <span lang="en">${w.ant.join(', ')}</span></p>
+    <p class="mr-mean" lang="mr">${w.mr}</p>
+    <p class="eg" lang="en"><i>${w.eg}</i></p>
+    <button class="toggle" type="button" data-word-toggle="${w.word}" aria-pressed="false">${U.i18n.markUnknown}</button>
+  </article>`).join('')}</div>
+</section>`;
+  }).join('');
+  const body = `<section class="hero">
+  <p class="eyebrow">${U.eyebrow}</p>
+  <h1>${U.h1(list.length)}</h1>
+  <p class="lede">${U.lede}</p>
+  <div id="vocab-app" class="vocab" data-i18n="${esc(JSON.stringify(U.i18n))}"></div>
+  <nav class="day-nav" aria-label="${U.dayNav}">${nav}</nav>
+</section>
+${dayHtml}`;
+  return page({ lang, file: 'words.html', title: U.title, description: U.description, body, scripts: ['assets/vocab-data.js', 'assets/vocab.js'] });
+}
+
 function renderBank() {
   const bank = SECTIONS.map((s) => ({
     id: s.id,
@@ -727,16 +918,50 @@ await rm(OUT, { recursive: true, force: true });
 await mkdir(join(OUT, 'assets'), { recursive: true });
 await mkdir(join(OUT, 'mr'), { recursive: true });
 await cp(join(ROOT, 'src'), join(OUT, 'assets'), { recursive: true });
-await writeFile(join(OUT, 'assets', 'bank.js'), renderBank());
+
+const outputs = []; // published paths; the service worker precaches all of them
+async function emit(rel, content) {
+  outputs.push(rel);
+  await writeFile(join(OUT, rel), content);
+}
+for (const f of await readdir(join(ROOT, 'src'))) outputs.push(`assets/${f}`);
+await emit('assets/bank.js', renderBank());
+await emit('assets/vocab-data.js', `window.MCA_VOCAB = ${JSON.stringify(VOCAB ?? [])};\n`);
 await writeFile(join(OUT, '.nojekyll'), '');
 let pages = 0;
 for (const lang of ['en', 'mr']) {
-  const dir = lang === 'en' ? OUT : join(OUT, 'mr');
-  await writeFile(join(dir, 'index.html'), renderHome(lang));
-  for (const s of SECTIONS) await writeFile(join(dir, `${s.id}.html`), renderSection(s, lang));
-  await writeFile(join(dir, 'revision.html'), renderRevision(lang));
-  await writeFile(join(dir, 'mock.html'), renderMock(lang));
-  await writeFile(join(dir, 'papers.html'), renderPapers(lang));
-  pages += 4 + SECTIONS.length;
+  const dir = lang === 'en' ? '' : 'mr/';
+  await emit(`${dir}index.html`, renderHome(lang));
+  for (const s of SECTIONS) await emit(`${dir}${s.id}.html`, renderSection(s, lang));
+  await emit(`${dir}words.html`, renderVocab(lang));
+  await emit(`${dir}revision.html`, renderRevision(lang));
+  await emit(`${dir}mock.html`, renderMock(lang));
+  await emit(`${dir}papers.html`, renderPapers(lang));
+  pages += 5 + SECTIONS.length;
 }
-console.log(`built ${pages} pages into site/ and site/mr/`);
+
+// Offline support: a service worker that precaches every page and asset. The cache name
+// carries a hash of this build, so a new deploy replaces the old cache on the next visit.
+const hash = createHash('sha1');
+for (const rel of outputs) hash.update(await readFile(join(OUT, rel)));
+const version = hash.digest('hex').slice(0, 12);
+await writeFile(join(OUT, 'sw.js'), `// Generated by scripts/build.mjs
+const CACHE = 'mca-${version}';
+const FILES = ${JSON.stringify(['./', 'mr/', ...outputs])};
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
+});
+self.addEventListener('activate', (e) => {
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+});
+// Cached copy first (works offline), refreshed from the network in the background.
+self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET' || new URL(e.request.url).origin !== self.location.origin) return;
+  e.respondWith(caches.open(CACHE).then(async (c) => {
+    const cached = await c.match(e.request, { ignoreSearch: true });
+    const network = fetch(e.request).then((r) => { if (r.ok) c.put(e.request, r.clone()); return r; }).catch(() => cached);
+    return cached || network;
+  }));
+});
+`);
+console.log(`built ${pages} pages into site/ and site/mr/ (build ${version})`);
