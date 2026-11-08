@@ -24,6 +24,36 @@
     list: function () { return Array.from(wrong); },
   };
 
+  // Analytics (Amplitude), loaded after the page so it never blocks studying, and skipped offline.
+  // Same setup as python.balubhau.com; every event also carries the site and language.
+  var ampQueue = [];
+  window.MCA_TRACK = function (name, props) {
+    if (window.amplitude && window.amplitude.track && window.MCA_AMP_READY) window.amplitude.track(name, props);
+    else ampQueue.push([name, props]);
+  };
+  var ampKey = document.documentElement.dataset.ampKey;
+  if (ampKey && navigator.onLine !== false) {
+    var ampScript = document.createElement('script');
+    ampScript.async = true;
+    ampScript.src = 'https://cdn.amplitude.com/script/' + ampKey + '.js';
+    ampScript.onload = function () {
+      try {
+        var amp = window.amplitude;
+        if (!amp) return;
+        var site = document.documentElement.dataset.site;
+        amp.add({ name: 'site-tag', type: 'enrichment', execute: function (e) {
+          e.event_properties = Object.assign({}, e.event_properties, { site: site, lang: MR ? 'mr' : 'en' });
+          return Promise.resolve(e);
+        } });
+        if (window.sessionReplay && window.sessionReplay.plugin) amp.add(window.sessionReplay.plugin());
+        amp.init(ampKey, { fetchRemoteConfig: true, autocapture: { attribution: true, fileDownloads: true, formInteractions: true, pageViews: true, sessions: true, elementInteractions: true, networkTracking: true, webVitals: true, frustrationInteractions: true } });
+        window.MCA_AMP_READY = true;
+        ampQueue.splice(0).forEach(function (ev) { amp.track(ev[0], ev[1]); });
+      } catch (e) { /* analytics must never break the page */ }
+    };
+    document.head.appendChild(ampScript);
+  }
+
   // Theme: follows the system until the user picks one.
   var themeBtn = document.querySelector('.theme');
   if (themeBtn) {

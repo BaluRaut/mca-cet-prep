@@ -11,7 +11,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { STUDY_PLAN } from '../content/plan.mjs';
-import { ABOUT_UI, UI } from '../content/i18n.mjs';
+import { ABOUT_UI, SITES, UI } from '../content/i18n.mjs';
 import { ABOUT, EXAM, FOOT, HOME, HOME_EXTRA, MOCK, PAPERS, SECTIONS, SYLLABUS_MR } from '../content/exam.mjs';
 import { OBSERVED_TYPES, PAPER_SOURCES } from '../content/papers.mjs';
 import { TERMS } from '../content/terms.mjs';
@@ -262,7 +262,7 @@ function page({ lang, file, title, description, hue = 250, body, scripts = [] })
   const other = lang === 'en' ? `mr/${file}` : `../${file}`;
   const otherLang = lang === 'en' ? 'mr' : 'en';
   return `<!doctype html>
-<html lang="${T.htmlLang}" data-sw="${up}sw.js">
+<html lang="${T.htmlLang}" data-sw="${up}sw.js" data-site="${EXAM.id}"${EXAM.analytics?.amplitudeKey ? ` data-amp-key="${EXAM.analytics.amplitudeKey}"` : ''}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -293,6 +293,7 @@ ${body}
 <footer class="wrap site-foot">
   <p>${FOOT[lang].source}</p>
   <p>${T.footRepo(REPO_URL, EXAM.issues)}</p>
+  <p class="foot-sites">${T.footSites} ${SITES.filter((x) => x.id !== EXAM.id).map((x) => `<a href="${x.url}${lang === 'mr' ? 'mr/' : ''}">${x.name[lang]}</a>`).join(' · ')}</p>
   <p class="foot-terms">${FOOT[lang].terms}</p>
 </footer>
 ${scripts.filter((s) => /-data\.js$|\/bank\.js$/.test(s)).map((s) => `<script src="${up}${s}"></script>`).join('\n')}

@@ -40,6 +40,9 @@ export const EXAM = {
     "en": "Any graduation degree (B.E./B.Tech/B.Sc/B.Com/B.Voc/BCA etc.), preferably with Mathematics at 10+2 or graduation level, with at least 50% marks (45% for reserved categories, EWS and PwD candidates belonging to Maharashtra). Final-year students may also appear.",
     "mr": "कोणतीही पदवी (B.E./B.Tech/B.Sc/B.Com/B.Voc/BCA इ.), शक्यतो 12वी किंवा पदवी स्तरावर गणितासह, किमान 50% गुण (महाराष्ट्रातील राखीव प्रवर्ग, EWS व दिव्यांग उमेदवारांसाठी 45%). अंतिम वर्षातील विद्यार्थीही परीक्षा देऊ शकतात."
   },
+  "analytics": {
+    "amplitudeKey": "cf9409dbde4fb96686ac8fabd345e057"
+  },
   "features": {
     "words": true
   },

@@ -277,6 +277,7 @@
       endsAt: Date.now() + minutes * 60000,
     };
     window.addEventListener('beforeunload', guardLeave);
+    if (window.MCA_TRACK) window.MCA_TRACK('Test Started', { mode: mode, questions: questions.length, minutes: minutes });
     tick = setInterval(updateTimer, 1000);
     renderExam();
     root.scrollIntoView();
@@ -425,6 +426,7 @@
     history.push({ at: Date.now(), mode: t.mode, score: score, max: max });
     store.set('mca:mocks', history.slice(-30));
     if (t.mode === 'diag') store.set('mca:diag', { at: Date.now(), per: per });
+    if (window.MCA_TRACK) window.MCA_TRACK('Test Finished', { mode: t.mode, questions: t.questions.length, correct: correct, wrong: wrongCount, skipped: t.questions.length - correct - wrongCount, score: score, max: max, timed_out: !!timedOut, seconds: Math.round((Math.min(Date.now(), t.endsAt) - t.startedAt) / 1000) });
 
     root.innerHTML = '';
     var head = el('section', {},

@@ -11,7 +11,8 @@ export const UI = {
     otherLang: { label: 'मराठी', title: 'मराठीत वाचा' },
     nav: { home: 'Home', about: 'About', plan: 'Plan', words: 'Words', revision: 'Revision', papers: 'Past papers', mock: 'Mock test' },
     sectionsLabel: 'Sections',
-    footRepo: (repo, issues) => `Free and open source · <a href="${repo}">GitHub</a>${issues ? ` · Found a wrong answer? <a href="${issues}">Open an issue</a>.` : '.'}`,
+    footRepo: (repo, issues) => repo ? `Free and open source · <a href="${repo}">GitHub</a>${issues ? ` · Found a wrong answer? <a href="${issues}">Open an issue</a>.` : '.'}` : 'Free to use.',
+    footSites: 'More free prep sites:',
 
     topicEyebrow: (short, syllabus, i, n) => `${short} · ${syllabus} · Topic ${i} of ${n}`,
     markDone: 'Mark as done',
@@ -45,7 +46,8 @@ export const UI = {
     otherLang: { label: 'English', title: 'Read in English' },
     nav: { home: 'मुख्यपृष्ठ', about: 'परीक्षेविषयी', plan: 'आराखडा', words: 'शब्द', revision: 'उजळणी', papers: 'मागील प्रश्नपत्रिका', mock: 'सराव परीक्षा' },
     sectionsLabel: 'विभाग',
-    footRepo: (repo, issues) => `मोफत आणि मुक्त स्रोत · <a href="${repo}">GitHub</a>${issues ? ` · एखादे उत्तर चुकीचे वाटले? <a href="${issues}">इथे कळवा</a>.` : '.'}`,
+    footRepo: (repo, issues) => repo ? `मोफत आणि मुक्त स्रोत · <a href="${repo}">GitHub</a>${issues ? ` · एखादे उत्तर चुकीचे वाटले? <a href="${issues}">इथे कळवा</a>.` : '.'}` : 'मोफत वापरासाठी.',
+    footSites: 'आणखी मोफत तयारी संकेतस्थळे:',
 
     topicEyebrow: (short, syllabus, i, n) => `${short} · ${syllabus} · विषय ${i} / ${n}`,
     markDone: 'पूर्ण झाले म्हणून खूण करा',
@@ -78,3 +80,10 @@ export const ABOUT_UI = {
   en: { pattern: 'Pattern at a glance', head: ['Section', 'Questions', 'Marks'], total: 'Total', duration: 'Duration', minutes: (m) => `${m} minutes`, perQ: 'Marks per correct answer', negative: 'Negative marking', none: 'None', each: (n) => `−${n} for each wrong answer`, medium: 'Medium', mode: 'Mode', eligibility: 'Eligibility' },
   mr: { pattern: 'स्वरूप एका नजरेत', head: ['विभाग', 'प्रश्न', 'गुण'], total: 'एकूण', duration: 'कालावधी', minutes: (m) => `${m} मिनिटे`, perQ: 'प्रत्येक बरोबर उत्तराला गुण', negative: 'निगेटिव्ह मार्किंग', none: 'नाही', each: (n) => `प्रत्येक चुकीच्या उत्तरासाठी −${n}`, medium: 'माध्यम', mode: 'पद्धत', eligibility: 'पात्रता' },
 };
+
+// The family of exam-prep sites, linked from every footer (the current site is left out).
+export const SITES = [
+  { id: 'mca', name: { en: 'MCA CET', mr: 'MCA CET' }, url: 'https://mca.balubhau.com/' },
+  { id: 'neet', name: { en: 'NEET', mr: 'NEET' }, url: 'https://neet.balubhau.com/' },
+  { id: 'jee', name: { en: 'JEE', mr: 'JEE' }, url: 'https://jee.balubhau.com/' },
+];

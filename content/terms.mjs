@@ -32,11 +32,13 @@ export const TERMS = {
         ],
       },
       {
-        h: '4. Your data',
+        h: '4. Your data and analytics',
         p: [
-          'The site has no accounts, no sign-up and asks for no personal information.',
-          'Your progress (topics marked done, test scores, mistakes, word lists and the plan start date) is stored only in your own browser and is never sent to us. Clearing your browser data removes it.',
-          'The hosting providers (GitHub Pages and Cloudflare) may keep ordinary server logs under their own policies.',
+          'The site has no accounts and no sign-up, and never asks for your name, email or phone number.',
+          'Your study progress (topics marked done, test scores, mistakes, word lists and the plan start date) is stored in your own browser. Clearing your browser data removes it.',
+          'To understand how the site is used and to improve it, we use <b>Amplitude</b> analytics. When you are online it records the pages you view, your clicks and taps, test starts and scores, time on the site, your device and browser type, and your approximate location from your IP address, under a random identifier. It may also record anonymised replays of how pages are used, with typed text masked. Amplitude processes this data under its own <a href="https://amplitude.com/privacy">privacy policy</a>.',
+          'If you prefer not to be measured, turn on your browser’s tracking protection or use a content blocker; the site works fully without analytics.',
+          'The hosting provider (Cloudflare) may keep ordinary server logs under its own policy.',
         ],
       },
       {
@@ -96,11 +98,13 @@ export const TERMS = {
         ],
       },
       {
-        h: '4. तुमची माहिती',
+        h: '4. तुमची माहिती आणि analytics',
         p: [
-          'या संकेतस्थळावर खाते नाही, नोंदणी नाही, आणि कोणतीही वैयक्तिक माहिती मागितली जात नाही.',
-          'तुमची प्रगती (पूर्ण केलेले विषय, परीक्षांचे गुण, चुका, शब्दांच्या याद्या आणि आराखड्याची सुरुवातीची तारीख) फक्त तुमच्या स्वतःच्या ब्राउझरमध्ये साठवली जाते आणि आमच्याकडे कधीही पाठवली जात नाही. ब्राउझरचा डेटा पुसला की ती निघून जाते.',
-          'होस्टिंग पुरवणाऱ्या कंपन्या (GitHub Pages आणि Cloudflare) त्यांच्या स्वतःच्या धोरणांनुसार नेहमीचे server logs ठेवू शकतात.',
+          'या संकेतस्थळावर खाते नाही, नोंदणी नाही, आणि तुमचे नाव, ईमेल किंवा फोन नंबर कधीही मागितला जात नाही.',
+          'तुमची अभ्यासाची प्रगती (पूर्ण केलेले विषय, परीक्षांचे गुण, चुका, शब्दांच्या याद्या आणि आराखड्याची सुरुवातीची तारीख) तुमच्या स्वतःच्या ब्राउझरमध्ये साठवली जाते. ब्राउझरचा डेटा पुसला की ती निघून जाते.',
+          'संकेतस्थळ कसे वापरले जाते हे समजून ते सुधारण्यासाठी आम्ही <b>Amplitude</b> analytics वापरतो. तुम्ही ऑनलाइन असताना ते एका यादृच्छिक ओळख-क्रमांकाखाली तुम्ही पाहिलेली पाने, क्लिक व टॅप, परीक्षा सुरू करणे व गुण, संकेतस्थळावरील वेळ, तुमचे उपकरण व ब्राउझरचा प्रकार, आणि IP पत्त्यावरून अंदाजे ठिकाण नोंदवते. पाने कशी वापरली जातात याचे अनामिक replay देखील नोंदवले जाऊ शकतात; टाइप केलेला मजकूर लपवला जातो. Amplitude ही माहिती स्वतःच्या <a href="https://amplitude.com/privacy">गोपनीयता धोरणानुसार</a> हाताळते.',
+          'तुम्हाला मोजमाप नको असेल तर ब्राउझरचे tracking protection सुरू करा किंवा content blocker वापरा; analytics शिवायही संकेतस्थळ पूर्णपणे चालते.',
+          'होस्टिंग पुरवणारी कंपनी (Cloudflare) तिच्या स्वतःच्या धोरणानुसार नेहमीचे server logs ठेवू शकते.',
         ],
       },
       {
