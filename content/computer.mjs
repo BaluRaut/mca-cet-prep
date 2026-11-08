@@ -185,7 +185,7 @@ export default [
       '3-2-1 rule: 3 copies, on 2 types of media, 1 kept off-site',
     ],
     example: {
-      q: 'A college office takes a full backup every Sunday night and an incremental backup every other night. The disk crashes on Thursday morning. Which backups are needed to restore, and in what order? What changes if the nightly backups were differential instead?',
+      q: 'A college office takes a full backup every Sunday night and an incremental backup on each of the other nights (Monday to Saturday). The disk crashes on Thursday morning. Which backups are needed to restore, and in what order? What changes if the nightly backups were differential instead?',
       steps: [
         'The last full backup is Sunday night’s.',
         'Incrementals after it: Monday, Tuesday and Wednesday nights. Each holds only that one day’s changes, so all three are needed.',
@@ -214,7 +214,7 @@ export default [
         why: 'A dot-matrix printer’s pins strike an inked ribbon; the others do not touch the paper with a hammer.',
       },
       {
-        q: 'A full backup is taken on Sunday night and a differential backup every other night. The disk fails on Friday morning. Which backups must be restored?',
+        q: 'A full backup is taken on Sunday night and a differential backup on each of the other nights (Monday to Saturday). The disk fails on Friday morning. Which backups must be restored?',
         options: [
           'Sunday full + Monday to Thursday differentials',
           'Sunday full + Thursday differential',
