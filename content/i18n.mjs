@@ -28,6 +28,7 @@ export const UI = {
     traps: 'Common traps',
     practice: 'Practice',
     practiceHint: 'tap an option to check',
+    practiceHintMr: 'tap an option to check',
     backToTop: '↑ Back to topic list',
 
     sectionEyebrow: (q, m) => `Section · ${q} questions · ${m} marks`,
@@ -63,6 +64,7 @@ export const UI = {
     traps: 'नेहमीच्या चुका',
     practice: 'सराव',
     practiceHint: 'प्रश्न परीक्षेप्रमाणे इंग्रजीत, खाली मराठी अर्थ · उत्तर तपासण्यासाठी पर्याय निवडा',
+    practiceHintMr: 'प्रश्नपत्रिकेप्रमाणे मराठीत, खाली इंग्रजी प्रश्न · उत्तर तपासण्यासाठी पर्याय निवडा',
     backToTop: '↑ विषयसूचीकडे परत',
 
     sectionEyebrow: (q, m) => `विभाग · ${q} प्रश्न · ${m} गुण`,
@@ -86,4 +88,5 @@ export const SITES = [
   { id: 'mca', name: { en: 'MCA CET', mr: 'MCA CET' }, url: 'https://mca.balubhau.com/' },
   { id: 'neet', name: { en: 'NEET', mr: 'NEET' }, url: 'https://neet.balubhau.com/' },
   { id: 'jee', name: { en: 'JEE', mr: 'JEE' }, url: 'https://jee.balubhau.com/' },
+  { id: 'mpsc', name: { en: 'MPSC', mr: 'MPSC' }, url: 'https://mpsc.balubhau.com/' },
 ];

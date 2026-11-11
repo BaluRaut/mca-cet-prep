@@ -175,6 +175,16 @@ function checkTranslation(t) {
   (tr.practice ?? []).forEach((p, i) => {
     if (p.q !== undefined && p.q !== '') checkHtml(`${at}.practice[${i}].q`, p.q);
     checkHtml(`${at}.practice[${i}].why`, p.why);
+    // Optional Marathi options (for bilingual papers): the Marathi site then shows the question and
+    // options in Marathi, with the English question as the helper.
+    if (p.options !== undefined) {
+      if (!p.q) errors.push(`${at}.practice[${i}]: Marathi options need a Marathi q`);
+      if (!Array.isArray(p.options) || p.options.length !== 4) errors.push(`${at}.practice[${i}].options: expected exactly 4`);
+      else {
+        p.options.forEach((o, oi) => checkHtml(`${at}.practice[${i}].options[${oi}]`, String(o)));
+        if (new Set(p.options.map(String)).size !== 4) errors.push(`${at}.practice[${i}].options: duplicate option`);
+      }
+    }
   });
 }
 
@@ -242,7 +252,7 @@ function view(t, lang) {
     example: { ...tr.example, code: t.example.code },
     shortcut: tr.shortcut,
     traps: tr.traps,
-    practice: t.practice.map((p, i) => ({ ...p, qHelp: tr.practice[i].q || null, why: tr.practice[i].why })),
+    practice: t.practice.map((p, i) => ({ ...p, qHelp: tr.practice[i].q || null, optsMr: tr.practice[i].options ?? null, why: tr.practice[i].why })),
   };
 }
 
@@ -306,10 +316,13 @@ ${scripts.filter((s) => !/-data\.js$|\/bank\.js$/.test(s)).map((s) => `<script s
 
 function renderMcq(p, n, lang, topicId) {
   return `<div class="mcq" data-answer="${p.answer}" data-qid="${topicId}-${n}">
-  <p class="q" lang="en"><span class="qn">Q${n}.</span> ${p.q}</p>
-  ${p.qHelp ? `<p class="q-help">${p.qHelp}</p>` : ''}
+  ${p.optsMr
+    ? `<p class="q" lang="mr"><span class="qn">Q${n}.</span> ${p.qHelp}</p>
+  <p class="q-help" lang="en">${p.q}</p>`
+    : `<p class="q" lang="en"><span class="qn">Q${n}.</span> ${p.q}</p>
+  ${p.qHelp ? `<p class="q-help">${p.qHelp}</p>` : ''}`}
   ${codeBlock(p.code)}
-  <div class="opts" lang="en">${p.options.map((o, i) =>
+  <div class="opts" lang="${p.optsMr ? 'mr' : 'en'}">${(p.optsMr ?? p.options).map((o, i) =>
     `<button class="opt" type="button" data-i="${i}"><span class="letter">${LETTERS[i]}</span><span>${o}</span></button>`).join('')}</div>
   <p class="why" hidden><b>${UI[lang].answer}: ${LETTERS[p.answer]}.</b> ${p.why}</p>
 </div>`;
@@ -363,7 +376,7 @@ function renderTopic(t, section, index, lang) {
   </div>
 
   <section class="practice">
-    <h3>${T.practice} <span class="muted">· ${T.practiceHint}</span></h3>
+    <h3>${T.practice} <span class="muted">· ${t.practice.some((p) => p.optsMr) ? T.practiceHintMr : T.practiceHint}</span></h3>
     ${t.practice.map((p, i) => renderMcq(p, i + 1, lang, t.id)).join('\n')}
   </section>
   <p class="back"><a href="#top">${T.backToTop}</a></p>
@@ -390,7 +403,7 @@ function renderSection(rawSection, lang) {
   </div>`).join('');
   const qCount = topics.reduce((n, t) => n + t.practice.length, 0);
   const body = `<section class="hero" id="top">
-  <p class="eyebrow">${T.sectionEyebrow(section.questions, section.questions * EXAM.marksPerQuestion)}</p>
+  <p class="eyebrow">${section.separatePaper ? section.separatePaper[lang] : T.sectionEyebrow(section.questions, section.questions * EXAM.marksPerQuestion)}</p>
   <h1>${section.name}</h1>
   <p class="lede">${section.blurb}</p>
   <div class="analogy small"><p class="analogy-tag">${T.sectionPicture}</p><p>${section.analogy}</p></div>
@@ -428,7 +441,7 @@ function renderHome(lang) {
   const cards = SECTIONS.map((raw) => {
     const s = sec(raw, lang);
     return `<a class="card" href="${s.id}.html" style="--hue:${s.hue}">
-    <span class="card-tag">${H.card(s.questions, s.questions * EXAM.marksPerQuestion, s.minutes)}</span>
+    <span class="card-tag">${s.separatePaper ? s.separatePaper[lang] : H.card(s.questions, s.questions * EXAM.marksPerQuestion, s.minutes)}</span>
     <h3>${s.name}</h3>
     <p>${s.blurb}</p>
     <div class="progress" data-progress="${s.topics.map((t) => t.id).join(' ')}">
@@ -835,8 +848,9 @@ function renderAbout(lang) {
   <h2>${U.pattern}</h2>
   <div class="table-wrap"><table class="plan sources">
     <thead><tr>${U.head.map((h) => `<th scope="col">${h}</th>`).join('')}</tr></thead>
-    <tbody>${sections.map((x) => `<tr><td>${x.name}</td><td>${x.questions}</td><td>${x.questions * EXAM.marksPerQuestion}</td></tr>`).join('')}
-    <tr><th scope="row">${U.total}</th><td><b>${EXAM.questions}</b></td><td><b>${EXAM.marks}</b></td></tr></tbody>
+    <tbody>${sections.filter((x) => !x.separatePaper).map((x) => `<tr><td>${x.name}</td><td>${x.questions}</td><td>${x.questions * EXAM.marksPerQuestion}</td></tr>`).join('')}
+    <tr><th scope="row">${U.total}</th><td><b>${EXAM.questions}</b></td><td><b>${EXAM.marks}</b></td></tr>
+    ${sections.filter((x) => x.separatePaper).map((x) => `<tr><td>${x.name}</td><td colspan="2">${x.separatePaper[lang]}</td></tr>`).join('')}</tbody>
   </table></div>
   <ul class="facts">
     <li><b>${U.duration}:</b> ${U.minutes(EXAM.minutes)}</li>
@@ -885,7 +899,7 @@ function renderBank() {
     name: s.name,
     short: s.short,
     hue: s.hue,
-    questions: s.questions,
+    questions: s.separatePaper ? 0 : s.questions, // a separate paper is drilled, not part of the full mock
     items: s.topics.flatMap((t) => {
       const tr = MR[t.id];
       return t.practice.map((p, i) => ({
@@ -894,6 +908,7 @@ function renderBank() {
         topicTitle: { en: t.title, mr: tr?.title ?? t.title },
         q: p.q,
         qMr: tr?.practice[i].q || undefined,
+        optionsMr: tr?.practice[i].options?.map(String),
         code: p.code ? esc(p.code.replace(/^\n+|\s+$/g, '')) : undefined,
         options: p.options.map(String),
         answer: p.answer,

@@ -83,6 +83,7 @@
       correct: 'Correct:',
       again: 'Take another test',
       meaning: null,
+      inEnglish: 'English',
     },
     mr: {
       diagTitle: function (n) { return 'इथून सुरू करा: ' + n + ' प्रश्नांची प्रारंभिक चाचणी'; },
@@ -140,6 +141,7 @@
       correct: 'बरोबर उत्तर:',
       again: 'पुन्हा परीक्षा द्या',
       meaning: 'मराठी अर्थ पाहा',
+      inEnglish: 'इंग्रजीत प्रश्न',
     },
   }[LANG];
 
@@ -184,7 +186,13 @@
     return m + ':' + String(s % 60).padStart(2, '0');
   }
 
+  // Bilingual papers: with Marathi options the Marathi site asks in Marathi and offers the English.
+  function mrFirst(item) { return LANG === 'mr' && !!item.optionsMr; }
+  function qText(item) { return mrFirst(item) ? item.qMr : item.q; }
+  function optText(item, k) { return mrFirst(item) ? item.optionsMr[k] : item.options[k]; }
+
   function meaning(item) {
+    if (mrFirst(item)) return '<details class="q-help" lang="en"><summary>' + TEXT.inEnglish + '</summary>' + item.q + '</details>';
     if (!TEXT.meaning || !item.qMr) return '';
     return '<details class="q-help"><summary>' + TEXT.meaning + '</summary>' + item.qMr + '</details>';
   }
@@ -207,7 +215,7 @@
     root.innerHTML = '';
 
     var fullCount = BANK.sections.reduce(function (n, s) { return n + Math.min(s.questions, s.items.length); }, 0);
-    var split = BANK.sections.map(function (s) { return Math.min(s.questions, s.items.length) + ' ' + L(s.short); }).join(', ');
+    var split = BANK.sections.filter(function (s) { return s.questions > 0; }).map(function (s) { return Math.min(s.questions, s.items.length) + ' ' + L(s.short); }).join(', ');
     var grid = el('div', { class: 'mock-setup' });
 
     var diag = el('div', { class: 'mode diag', id: 'diag' }, '<h3>' + TEXT.diagTitle(DIAG_PER_SECTION * BANK.sections.length) + '</h3><p>' + TEXT.diagDesc(DIAG_MINUTES) + '</p>');
@@ -329,10 +337,10 @@
 
     var card = el('div', { class: 'exam-q', style: '--hue:' + section.hue });
     card.appendChild(el('p', { class: 'meta' }, TEXT.meta(test.current + 1, test.questions.length, L(section.short), L(q.item.topicTitle))));
-    card.appendChild(el('p', { class: 'q', lang: 'en' }, q.item.q));
+    card.appendChild(el('p', { class: 'q', lang: mrFirst(q.item) ? 'mr' : 'en' }, qText(q.item)));
     if (meaning(q.item)) card.appendChild(el('div', {}, meaning(q.item)));
     if (q.item.code) card.appendChild(el('pre', { class: 'code' }, '<code>' + q.item.code + '</code>'));
-    var group = el('div', { role: 'radiogroup', 'aria-label': TEXT.options, lang: 'en' });
+    var group = el('div', { role: 'radiogroup', 'aria-label': TEXT.options, lang: mrFirst(q.item) ? 'mr' : 'en' });
     q.order.forEach(function (orig, i) {
       var id = 'opt-' + i;
       var label = el('label', { class: 'choice', for: id });
@@ -340,7 +348,7 @@
       input.checked = q.chosen === i;
       input.addEventListener('change', function () { q.chosen = i; paintPalette(); });
       label.appendChild(input);
-      label.appendChild(el('span', {}, '<b>' + LETTERS[i] + '.</b> ' + q.item.options[orig]));
+      label.appendChild(el('span', {}, '<b>' + LETTERS[i] + '.</b> ' + optText(q.item, orig)));
       group.appendChild(label);
     });
     card.appendChild(group);
@@ -487,12 +495,12 @@
     t.questions.forEach(function (q, i) {
       var state = q.chosen === null ? 'skip' : q.chosen === q.answer ? 'ok' : 'no';
       var s = sectionById(q.section);
-      var opt = function (k) { return LETTERS[k] + '. ' + q.item.options[q.order[k]]; };
+      var opt = function (k) { return LETTERS[k] + '. ' + optText(q.item, q.order[k]); };
       var isSlow = q.time > SLOW_MS;
       list.appendChild(el('div', { class: 'review-item ' + state + (isSlow ? ' slow' : '') },
         '<p class="meta muted">Q' + (i + 1) + ' · ' + L(s.short) + ' · <a href="' + s.id + '.html#' + q.item.topic + '">' + L(q.item.topicTitle) + '</a>' +
         ' · <span class="' + (isSlow ? 'time-slow' : '') + '">⏱ ' + fmtTime(q.time) + '</span></p>' +
-        '<p lang="en">' + q.item.q + '</p>' + (LANG === 'mr' && q.item.qMr ? '<p class="q-help">' + q.item.qMr + '</p>' : '') +
+        (mrFirst(q.item) ? '<p lang="mr">' + q.item.qMr + '</p><p class="q-help" lang="en">' + q.item.q + '</p>' : '<p lang="en">' + q.item.q + '</p>' + (LANG === 'mr' && q.item.qMr ? '<p class="q-help">' + q.item.qMr + '</p>' : '')) +
         (q.item.code ? '<pre class="code"><code>' + q.item.code + '</code></pre>' : '') +
         '<p>' + (state === 'skip' ? '<b>' + TEXT.notAnswered + '</b>' : '<b>' + TEXT.yours + '</b> ' + opt(q.chosen) + (state === 'ok' ? ' ✓' : ' ✗')) +
         (state !== 'ok' ? '<br><b>' + TEXT.correct + '</b> ' + opt(q.answer) : '') + '</p>' +

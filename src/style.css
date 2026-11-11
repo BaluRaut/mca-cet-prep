@@ -267,6 +267,7 @@ pre.code code { background: none; padding: 0; color: inherit; }
 .speed th, .speed td { padding: 4px 8px; border-bottom: 1px solid var(--border); text-align: left; }
 .speed th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
 :root:lang(mr) .speed th { text-transform: none; letter-spacing: 0; }
+.speed .rev { min-width: 0; overflow-x: auto; } /* wide tables (2ⁿ up to 65536) scroll inside their card */
 .speed .rev h3 { margin-bottom: 8px; }
 
 /* words */
